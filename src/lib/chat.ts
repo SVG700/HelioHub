@@ -1,4 +1,5 @@
 import { estimateSolarOutcome } from './solar';
+import { supabase } from './supabaseClient';
 
 export type ConfidenceLevel = 'High' | 'Medium' | 'Low';
 
@@ -8,6 +9,7 @@ export type ChatMessage = {
   content: string;
   confidence?: ConfidenceLevel;
   typing?: boolean;
+  feedback?: 'good' | 'bad' | null;
 };
 
 export type ChatContext = {
@@ -26,6 +28,81 @@ function detectIntent(message: string) {
   if (/(battery|storage|backup)/.test(lower)) return 'battery';
   if (/(power|output|energy|generate|production)/.test(lower)) return 'output';
   return 'general';
+}
+
+export async function getAIResponse(userInput: string): Promise<{ answer: string; confidence: ConfidenceLevel } | null> {
+  try {
+    const { data, error } = await supabase.from('helios_knowledge').select('question, answer, confidence');
+
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('No knowledge base entries found');
+      return null;
+    }
+
+    const inputLower = userInput.toLowerCase();
+
+    for (const entry of data) {
+      const questionLower = (entry.question || '').toLowerCase();
+      if (questionLower.includes(inputLower) || inputLower.includes(questionLower)) {
+        return {
+          answer: entry.answer || 'No answer available',
+          confidence: (entry.confidence as ConfidenceLevel) || 'Medium'
+        };
+      }
+    }
+
+    return null;
+  } catch (err) {
+    console.error('Error fetching AI response:', err);
+    return null;
+  }
+}
+
+export async function saveFeedback(
+  question: string,
+  answer: string,
+  feedback: 'good' | 'bad'
+): Promise<boolean> {
+  try {
+    const { error } = await supabase.from('ai_feedback').insert([
+      {
+        question,
+        answer,
+        feedback,
+        timestamp: new Date().toISOString()
+      }
+    ]);
+
+    if (error) {
+      console.error('Feedback save error:', error);
+      return false;
+    }
+
+    console.log(`Feedback recorded: ${feedback}`);
+    return true;
+  } catch (err) {
+    console.error('Error saving feedback:', err);
+    return false;
+  }
+}
+
+export async function logQuery(userInput: string, aiResponse: string): Promise<void> {
+  try {
+    await supabase.from('ai_logs').insert([
+      {
+        user_query: userInput,
+        ai_response: aiResponse,
+        timestamp: new Date().toISOString()
+      }
+    ]);
+  } catch (err) {
+    console.error('Error logging query:', err);
+  }
 }
 
 export function generateHeliosReply(message: string, context: ChatContext): { confidence: ConfidenceLevel; content: string } {
@@ -67,4 +144,27 @@ export function generateHeliosReply(message: string, context: ChatContext): { co
     confidence: 'Low',
     content: 'Helios AI is currently optimized for solar-related queries. Please ask about solar feasibility, cost, battery storage, or energy usage.'
   };
+}
+
+export async function generateHeliosReplyWithDB(
+  message: string,
+  context: ChatContext
+): Promise<{ confidence: ConfidenceLevel; content: string }> {
+  try {
+    const dbResponse = await getAIResponse(message);
+
+    if (dbResponse) {
+      await logQuery(message, dbResponse.answer);
+      return {
+        confidence: dbResponse.confidence,
+        content: dbResponse.answer
+      };
+    }
+  } catch (err) {
+    console.error('Error in DB lookup, falling back to local logic:', err);
+  }
+
+  const localResponse = generateHeliosReply(message, context);
+  await logQuery(message, localResponse.content);
+  return localResponse;
 }

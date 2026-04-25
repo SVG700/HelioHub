@@ -1,0 +1,10 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/ai-assistant/page": "/ai-assistant",
+  "/api/gemini/route": "/api/gemini",
+  "/dashboard/page": "/dashboard",
+  "/feasibility-tool/page": "/feasibility-tool",
+  "/page": "/",
+  "/team/page": "/team"
+}

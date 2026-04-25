@@ -3,21 +3,21 @@ export const feasibilityProfiles = {
     label: 'Low',
     panelRange: '1–2 panels',
     outputRange: '180–350W daily',
-    savings: '$12–$24 monthly',
+    savings: '₹1,000–₹2,000 monthly',
     confidence: 'Low'
   },
   medium: {
     label: 'Medium',
     panelRange: '3–4 panels',
     outputRange: '600–950W daily',
-    savings: '$30–$54 monthly',
+    savings: '₹2,500–₹4,500 monthly',
     confidence: 'Medium'
   },
   high: {
     label: 'High',
     panelRange: '5–8 panels',
     outputRange: '1.2–2.4kW daily',
-    savings: '$65–$120 monthly',
+    savings: '₹5,400–₹10,000 monthly',
     confidence: 'High'
   }
 } as const;

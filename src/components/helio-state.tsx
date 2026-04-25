@@ -43,7 +43,7 @@ export function HelioStateProvider({ children }: { children: ReactNode }) {
     feasibility: 'medium',
     energy: '0.7–1.3 kWh estimated daily generation',
     panels: '3–4 panels suggested',
-    savings: '$30–$54 monthly'
+    savings: '₹2,500–₹4,500 monthly'
   });
 
   useEffect(() => {
