@@ -16,14 +16,19 @@ export async function getAIResponse(userInput: string): Promise<string> {
       .select('*')
 
     if (!error && data && data.length > 0) {
-      const input = userInput.toLowerCase()
-      
-      const match = data.find((item: any) =>
-        item.question?.toLowerCase().includes(input) ||
-        item.keywords?.toLowerCase().includes(input) ||
-        input.includes(item.question?.toLowerCase()) ||
-        input.includes(item.keywords?.toLowerCase())
-      )
+      const input = userInput.toLowerCase().trim()
+
+      const match = data?.find((item: any) => {
+        const question = item.question?.toLowerCase() || ''
+        const keywords = item.keywords?.toLowerCase() || ''
+
+        const keywordList = keywords.split(',').map((k: string) => k.trim())
+        const keywordMatch = keywordList.some((k: string) =>
+          k.length > 2 && input.includes(k)
+        )
+
+        return input.includes(question) || question.includes(input) || keywordMatch
+      })
 
       if (match) {
         // Found in Supabase - return immediately
@@ -49,9 +54,11 @@ export async function getAIResponse(userInput: string): Promise<string> {
         body: JSON.stringify({ question: promptWithContext })
       })
 
+      console.log('Gemini response status:', response.status)
       const geminiData = await response.json()
+      console.log('Gemini data:', geminiData)
 
-      if (geminiData.answer) {
+      if (geminiData.answer && geminiData.answer.length > 0) {
         // Save to user_queries with answered_by_ai status
         await supabase.from('user_queries').insert([{
           user_question: userInput,
@@ -62,7 +69,7 @@ export async function getAIResponse(userInput: string): Promise<string> {
         return geminiData.answer
       }
     } catch (geminiError) {
-      console.error('Gemini error:', geminiError)
+      console.error('Gemini fetch error:', geminiError)
     }
 
     // STEP 3: Both failed - save as pending

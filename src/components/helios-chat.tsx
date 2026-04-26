@@ -84,6 +84,15 @@ export function HeliosChat({
   };
 
   const isFeasibilityRelatedPrompt = (text: string) => /(feasib|feasible|solar|sunlight|site potential|irradiance|panel|output|location|site|cost|saving|savings|energy|watt|kilowatt|kwh)/i.test(text);
+  const isFeasibilityQuestion = (question: string): boolean => {
+    const feasibilityKeywords = [
+      'feasib', 'panel', 'solar install', 'sunlight', 'location',
+      'savings', 'cost', 'output', 'generat', 'kwh', 'watt',
+      'how many panel', 'my area', 'my location', 'my city'
+    ];
+    const q = question.toLowerCase();
+    return feasibilityKeywords.some((keyword) => q.includes(keyword));
+  };
   const isStrictFeasibilityPrompt = (text: string) => /(feasib|feasible|solar feasibility|site potential|irradiance)/i.test(text);
   const isPanelPrompt = (text: string) => /(panel|panels|how many panels|required panels|panel count)/i.test(text);
   const isOutputPrompt = (text: string) => /(output|energy|generation|generate)/i.test(text);
@@ -200,6 +209,7 @@ export function HeliosChat({
   const getStructuredCards = (message: HeliosChatMessage, userPrompt: string) => {
     if (message.role !== 'assistant') return [] as Array<{ label: string; value: string }>;
     if (!feasibilityData.isDataAvailable) return [] as Array<{ label: string; value: string }>;
+    if (!isFeasibilityQuestion(userPrompt)) return [] as Array<{ label: string; value: string }>;
 
     const asksFeasibility = isFeasibilityRelatedPrompt(userPrompt);
     const asksPanels = isPanelPrompt(userPrompt);
