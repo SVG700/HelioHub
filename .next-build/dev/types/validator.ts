@@ -113,3 +113,4 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   // @ts-ignore
   type __Unused = __Check
 }
+

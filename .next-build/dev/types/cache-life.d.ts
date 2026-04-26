@@ -143,3 +143,4 @@ declare module 'next/cache' {
   export const unstable_cacheTag: typeof cacheTag
   export const unstable_cacheLife: typeof cacheLife
 }
+

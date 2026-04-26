@@ -1,14 +1,14 @@
 [
   {
     "route": "/ai-assistant",
-    "firstLoadUncompressedJsBytes": 908922,
+    "firstLoadUncompressedJsBytes": 911000,
     "firstLoadChunkPaths": [
-      ".next-build\\static\\chunks\\0~jfd8ot3g-jc.js",
+      ".next-build\\static\\chunks\\0p._esw~tnrj7.js",
       ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
       ".next-build\\static\\chunks\\0dowkie~wubgt.js",
       ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",
-      ".next-build\\static\\chunks\\01c0xligflf0j.js",
-      ".next-build\\static\\chunks\\06u_xj7ta4e.s.js",
+      ".next-build\\static\\chunks\\02s_tn~4_sej_.js",
+      ".next-build\\static\\chunks\\0~76-91j5ftsv.js",
       ".next-build\\static\\chunks\\0.rpmfgx.6no7.js",
       ".next-build\\static\\chunks\\0cje14_narrpx.js",
       ".next-build\\static\\chunks\\10~x95jhs6ns3.js",
@@ -18,9 +18,9 @@
   },
   {
     "route": "/dashboard",
-    "firstLoadUncompressedJsBytes": 882784,
+    "firstLoadUncompressedJsBytes": 884028,
     "firstLoadChunkPaths": [
-      ".next-build\\static\\chunks\\0~jfd8ot3g-jc.js",
+      ".next-build\\static\\chunks\\0p._esw~tnrj7.js",
       ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
       ".next-build\\static\\chunks\\0dowkie~wubgt.js",
       ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",
@@ -35,9 +35,9 @@
   },
   {
     "route": "/team",
-    "firstLoadUncompressedJsBytes": 698243,
+    "firstLoadUncompressedJsBytes": 699487,
     "firstLoadChunkPaths": [
-      ".next-build\\static\\chunks\\0~jfd8ot3g-jc.js",
+      ".next-build\\static\\chunks\\0p._esw~tnrj7.js",
       ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
       ".next-build\\static\\chunks\\0dowkie~wubgt.js",
       ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",
@@ -50,10 +50,26 @@
     ]
   },
   {
-    "route": "/",
-    "firstLoadUncompressedJsBytes": 692337,
+    "route": "/feasibility-tool",
+    "firstLoadUncompressedJsBytes": 695376,
     "firstLoadChunkPaths": [
-      ".next-build\\static\\chunks\\0~jfd8ot3g-jc.js",
+      ".next-build\\static\\chunks\\0p._esw~tnrj7.js",
+      ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
+      ".next-build\\static\\chunks\\0dowkie~wubgt.js",
+      ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",
+      ".next-build\\static\\chunks\\0g4_nrcebx.v1.js",
+      ".next-build\\static\\chunks\\0.rpmfgx.6no7.js",
+      ".next-build\\static\\chunks\\0cje14_narrpx.js",
+      ".next-build\\static\\chunks\\10~x95jhs6ns3.js",
+      ".next-build\\static\\chunks\\0enr6~6kfqjap.js",
+      ".next-build\\static\\chunks\\turbopack-0fyou_i0vhyfb.js"
+    ]
+  },
+  {
+    "route": "/",
+    "firstLoadUncompressedJsBytes": 693581,
+    "firstLoadChunkPaths": [
+      ".next-build\\static\\chunks\\0p._esw~tnrj7.js",
       ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
       ".next-build\\static\\chunks\\0dowkie~wubgt.js",
       ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",
@@ -66,26 +82,10 @@
     ]
   },
   {
-    "route": "/feasibility-tool",
-    "firstLoadUncompressedJsBytes": 691260,
-    "firstLoadChunkPaths": [
-      ".next-build\\static\\chunks\\0~jfd8ot3g-jc.js",
-      ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
-      ".next-build\\static\\chunks\\0dowkie~wubgt.js",
-      ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",
-      ".next-build\\static\\chunks\\0lbi5f0dmg-ic.js",
-      ".next-build\\static\\chunks\\0.rpmfgx.6no7.js",
-      ".next-build\\static\\chunks\\0cje14_narrpx.js",
-      ".next-build\\static\\chunks\\10~x95jhs6ns3.js",
-      ".next-build\\static\\chunks\\0enr6~6kfqjap.js",
-      ".next-build\\static\\chunks\\turbopack-0fyou_i0vhyfb.js"
-    ]
-  },
-  {
     "route": "/_not-found",
-    "firstLoadUncompressedJsBytes": 678707,
+    "firstLoadUncompressedJsBytes": 679951,
     "firstLoadChunkPaths": [
-      ".next-build\\static\\chunks\\0~jfd8ot3g-jc.js",
+      ".next-build\\static\\chunks\\0p._esw~tnrj7.js",
       ".next-build\\static\\chunks\\0d3shmwh5_nmn.js",
       ".next-build\\static\\chunks\\0dowkie~wubgt.js",
       ".next-build\\static\\chunks\\0y_bn94s7zn1u.js",

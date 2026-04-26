@@ -138,3 +138,4 @@ export function estimateSolarOutcome(location: string, sunlightHours: number): F
     recommendation
   };
 }
+

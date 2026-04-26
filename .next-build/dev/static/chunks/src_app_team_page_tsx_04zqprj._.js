@@ -3,3 +3,4 @@
     chunks: ["static/chunks/node_modules_next_0slx6_o._.js","static/chunks/src_09w_gl5._.js"],
     source: "dynamic"
 });
+

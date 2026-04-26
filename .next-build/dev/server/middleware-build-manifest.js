@@ -24,3 +24,4 @@ globalThis.__BUILD_MANIFEST = {
     "static/chunks/turbopack-_0p44nws._.js"
   ]
 };
+

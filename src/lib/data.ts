@@ -52,3 +52,4 @@ export const schemes = [
 export const architectureFlow = ['Solar Panel', 'Charge Controller', 'Battery Bank', 'DC-DC Converter', 'Output Port'];
 
 export const regionOptions = ['All', 'National', 'Urban', 'Rural', 'Industrial'];
+

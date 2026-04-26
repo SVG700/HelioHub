@@ -33,3 +33,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Gemini API failed' }, { status: 500 })
   }
 }
+

@@ -117,3 +117,4 @@ export function resetFeasibilityData(): void {
   feasibilityData = { ...defaultFeasibilityData };
   listeners.forEach((listener) => listener(feasibilityData));
 }
+

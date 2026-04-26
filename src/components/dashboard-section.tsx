@@ -220,3 +220,4 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
     </SectionShell>
   );
 }
+

@@ -79,3 +79,4 @@ export function Hero({ onExplore, onFeasibility }: { onExplore: () => void; onFe
     </section>
   );
 }
+

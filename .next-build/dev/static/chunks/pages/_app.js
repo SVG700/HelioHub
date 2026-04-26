@@ -11,3 +11,4 @@ __turbopack_load_page_chunks__("/_app", [
   "static/chunks/pages__app_07xvfw~._.js",
   "static/chunks/turbopack-pages__app_0_wu8vy._.js"
 ])
+

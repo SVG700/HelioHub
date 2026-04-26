@@ -168,3 +168,4 @@ export async function generateHeliosReplyWithDB(
   await logQuery(message, localResponse.content);
   return localResponse;
 }
+
