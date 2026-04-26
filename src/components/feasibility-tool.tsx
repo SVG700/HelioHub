@@ -27,7 +27,7 @@ type CalculatedResult = {
   electricityRate: number;
   sunlightReadiness: number;
   panelsNeeded: number;
-  recommendation: string;
+  recommendation?: string;
 };
 
 const scenarioDefaults: Record<DemoScenario, { location: string; sunlightHours: number }> = {

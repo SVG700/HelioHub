@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { FiSend, FiUser, FiZap, FiThumbsUp, FiThumbsDown, FiX } from 'react-icons/fi';
 import { SectionShell } from './section-shell';
 import type { ChatMessage } from '@/lib/chat';
@@ -40,7 +40,6 @@ export function HeliosChat({
   ];
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [messages, setMessages] = useState<HeliosChatMessage[]>([
     {
@@ -110,7 +109,7 @@ export function HeliosChat({
       setIsFeasibilityBannerVisible(true);
     }
 
-    const prefilledQuestion = searchParams.get('q');
+    const prefilledQuestion = new URLSearchParams(window.location.search).get('q');
     if (prefilledQuestion) {
       setInput(prefilledQuestion);
     }
@@ -126,7 +125,7 @@ export function HeliosChat({
     });
 
     return unsubscribe;
-  }, [searchParams]);
+  }, []);
 
   const handleFeedback = async (messageId: string, feedbackValue: 'good' | 'bad') => {
     const message = messages.find((m) => m.id === messageId);
@@ -174,8 +173,12 @@ export function HeliosChat({
       setIsThinking(false);
 
       if (isStrictFeasibilityPrompt(trimmed)) {
-        const confidence = feasibilityData.isDataAvailable
-          ? feasibilityData.feasibilityLevel
+        const confidence: 'High' | 'Medium' | 'Low' = feasibilityData.isDataAvailable
+          ? feasibilityData.feasibilityLevel.toLowerCase() === 'high'
+            ? 'High'
+            : feasibilityData.feasibilityLevel.toLowerCase() === 'medium'
+              ? 'Medium'
+              : 'Low'
           : context.feasibility === 'high' ? 'High' : context.feasibility === 'medium' ? 'Medium' : 'Low';
         postAssistantMessage(reply, confidence);
         return;
