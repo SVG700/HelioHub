@@ -1,0 +1,3 @@
+HelioHub v1.0 - Production Ready
+Built with Next.js, Supabase, and Gemini AI
+Last updated: April 2026

@@ -1,25 +1,37 @@
-# HelioHub – Smart Solar Charging Station
+# HelioHub - Smart Solar Charging Station
 
-HelioHub is a futuristic Next.js multi-page application for a solar charging startup demo with a simulated Helios AI assistant, a feasibility calculator, a live dashboard, and a premium glassmorphism UI.
+AI-Powered Solar Solutions for a Brighter Tomorrow
 
-## Run
+## Features
+- 🌞 Solar Feasibility Tool
+- 🤖 Helios AI Assistant (powered by Gemini)
+- 📊 Live Dashboard Simulation
+- 🏛️ Government Schemes Information
+- 👥 Team Page
 
-1. Install dependencies: `npm install`
-2. Start development mode: `npm run dev`
-3. Build for production: `npm run build`
-
-## Pages
-
-- Home
-- Dashboard
-- AI Assistant
-- Feasibility Tool
-- Team
-
-## Stack
-
-- Next.js App Router
+## Tech Stack
+- Next.js 16
 - TypeScript
 - Tailwind CSS
 - Framer Motion
-- Chart.js
+- Supabase (Database)
+- Google Gemini AI
+
+## Team
+- Samhith V Gupta
+- Madhan B V
+- Ruchika Amol Patil
+
+## Guide
+- Dr. Divyarani M S
+
+## Setup
+1. Clone the repository
+2. Run npm install
+3. Add environment variables in .env.local
+4. Run npm run dev
+
+## Environment Variables
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEY=your_gemini_api_key
