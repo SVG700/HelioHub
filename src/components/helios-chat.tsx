@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { FiSend, FiUser, FiZap, FiThumbsUp, FiThumbsDown } from 'react-icons/fi';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FiSend, FiUser, FiZap, FiThumbsUp, FiThumbsDown, FiX } from 'react-icons/fi';
 import { SectionShell } from './section-shell';
 import type { ChatMessage } from '@/lib/chat';
 import { getAIResponse, saveFeedback } from '@/lib/heliosAI';
@@ -15,9 +15,9 @@ type HeliosChatMessage = ChatMessage & {
 
 export function HeliosChat({
   context,
-  demoMode,
-  scenario,
-  scenarioSignal
+  demoMode: _demoMode,
+  scenario: _scenario,
+  scenarioSignal: _scenarioSignal
 }: {
   context: {
     location: string;
@@ -40,6 +40,7 @@ export function HeliosChat({
   ];
 
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [messages, setMessages] = useState<HeliosChatMessage[]>([
     {
@@ -52,10 +53,16 @@ export function HeliosChat({
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const [isFeasibilityBannerVisible, setIsFeasibilityBannerVisible] = useState(false);
+  const [feasibilityBannerLocation, setFeasibilityBannerLocation] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToBottom();
   }, [messages, isThinking]);
 
   const postAssistantMessage = (
@@ -94,14 +101,32 @@ export function HeliosChat({
   };
 
   useEffect(() => {
-    setFeasibilityStoreData(loadFeasibilityData());
+    const loadedData = loadFeasibilityData();
+    setFeasibilityStoreData(loadedData);
+
+    const isFresh = loadedData.timestamp > 0 && Date.now() - loadedData.timestamp < 24 * 60 * 60 * 1000;
+    if (loadedData.isDataAvailable && isFresh) {
+      setFeasibilityBannerLocation(loadedData.location);
+      setIsFeasibilityBannerVisible(true);
+    }
+
+    const prefilledQuestion = searchParams.get('q');
+    if (prefilledQuestion) {
+      setInput(prefilledQuestion);
+    }
 
     const unsubscribe = subscribeFeasibilityData((value) => {
       setFeasibilityStoreData(value);
+
+      const hasFreshData = value.timestamp > 0 && Date.now() - value.timestamp < 24 * 60 * 60 * 1000;
+      if (value.isDataAvailable && hasFreshData) {
+        setFeasibilityBannerLocation(value.location);
+        setIsFeasibilityBannerVisible(true);
+      }
     });
 
     return unsubscribe;
-  }, []);
+  }, [searchParams]);
 
   const handleFeedback = async (messageId: string, feedbackValue: 'good' | 'bad') => {
     const message = messages.find((m) => m.id === messageId);
@@ -213,37 +238,6 @@ export function HeliosChat({
     return uniqueCards;
   };
 
-  useEffect(() => {
-    if (!demoMode) return;
-
-    const autoInsights = [
-      'Analyzing solar data…',
-      `Energy output is stable at ${context.energy}.`,
-      'Battery operating within safe limits.',
-      `Current deployment confidence remains ${context.feasibility.toUpperCase()}.`
-    ];
-
-    const id = window.setInterval(() => {
-      const message = autoInsights[Math.floor(Math.random() * autoInsights.length)];
-      void postAssistantMessage(`Helios AI Stream: ${message}`);
-    }, 12000);
-
-    return () => window.clearInterval(id);
-  }, [context.energy, context.feasibility, demoMode]);
-
-  useEffect(() => {
-    if (!demoMode || scenarioSignal === 0) return;
-
-    const scenarioText =
-      scenario === 'high'
-        ? 'Scenario update received: high sunlight profile activated. Output expectations increased.'
-        : scenario === 'medium'
-          ? 'Scenario update received: medium sunlight profile activated. Balanced generation profile detected.'
-          : 'Scenario update received: low sunlight profile activated. Prioritizing battery-backed resilience.';
-
-    void postAssistantMessage(`Helios AI Analysis: ${scenarioText}`);
-  }, [demoMode, scenario, scenarioSignal]);
-
   return (
     <SectionShell
       id="ai"
@@ -281,7 +275,25 @@ export function HeliosChat({
           </motion.div>
         ) : null}
 
-        <div className="scrollbar-hide relative max-h-[460px] space-y-4 overflow-y-auto rounded-[1.75rem] border border-white/10 bg-[linear-gradient(160deg,rgba(3,9,20,0.92),rgba(9,18,35,0.82))] p-4">
+        {isFeasibilityBannerVisible && feasibilityBannerLocation ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 flex items-start justify-between gap-3 rounded-xl border border-emerald-300/35 bg-emerald-300/12 px-4 py-3 text-sm text-emerald-100"
+          >
+            <p>🌞 Feasibility data loaded for {feasibilityBannerLocation}. Ask me anything about your solar setup!</p>
+            <button
+              type="button"
+              onClick={() => setIsFeasibilityBannerVisible(false)}
+              className="rounded-full border border-emerald-300/35 bg-emerald-300/10 p-1 text-emerald-100 transition duration-150 hover:border-emerald-300/60 hover:bg-emerald-300/20"
+              aria-label="Dismiss feasibility banner"
+            >
+              <FiX className="text-xs" />
+            </button>
+          </motion.div>
+        ) : null}
+
+        <div className="scrollbar-hide relative max-h-[60vh] space-y-4 overflow-y-auto rounded-[1.75rem] border border-white/10 bg-[linear-gradient(160deg,rgba(3,9,20,0.92),rgba(9,18,35,0.82))] p-4">
           <AnimatePresence initial={false}>
             {messages.map((message, messageIndex) => {
               const previousUserPrompt = getPreviousUserPrompt(messageIndex);
@@ -384,7 +396,7 @@ export function HeliosChat({
               </div>
             </div>
           ) : null}
-          <div ref={endRef} />
+          <div ref={messagesEndRef} />
         </div>
 
         <div className="mt-4 flex gap-3">

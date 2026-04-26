@@ -3,19 +3,18 @@ export type FeasibilityData = {
   sunlightHours: number;
   panelsRequired: string;
   estimatedOutput: string;
-  feasibilityLevel: 'High' | 'Medium' | 'Low';
+  feasibilityLevel: string;
   monthlySavings: string;
+  annualSavings: string;
   electricityRate: number;
-  minMonthlySavings: number;
-  maxMonthlySavings: number;
-  minAnnualSavings: number;
-  maxAnnualSavings: number;
   paybackYears: string;
-  monthlyCO2Saved: number;
+  co2Saved: string;
   isDataAvailable: boolean;
+  timestamp: number;
 };
 
-const FEASIBILITY_STORAGE_KEY = 'heliohub-feasibility-data';
+export const FEASIBILITY_STORAGE_KEY = 'helios_feasibility_data';
+const LEGACY_FEASIBILITY_STORAGE_KEY = 'heliohub-feasibility-data';
 
 const defaultFeasibilityData: FeasibilityData = {
   location: '',
@@ -24,14 +23,12 @@ const defaultFeasibilityData: FeasibilityData = {
   estimatedOutput: '',
   feasibilityLevel: 'Medium',
   monthlySavings: '',
+  annualSavings: '',
   electricityRate: 0,
-  minMonthlySavings: 0,
-  maxMonthlySavings: 0,
-  minAnnualSavings: 0,
-  maxAnnualSavings: 0,
   paybackYears: '',
-  monthlyCO2Saved: 0,
-  isDataAvailable: false
+  co2Saved: '',
+  isDataAvailable: false,
+  timestamp: 0
 };
 
 let feasibilityData: FeasibilityData = { ...defaultFeasibilityData };
@@ -47,7 +44,9 @@ function readFromStorage(): FeasibilityData | null {
   if (!isBrowser()) return null;
 
   try {
-    const raw = window.localStorage.getItem(FEASIBILITY_STORAGE_KEY);
+    const raw =
+      window.localStorage.getItem(FEASIBILITY_STORAGE_KEY) ??
+      window.localStorage.getItem(LEGACY_FEASIBILITY_STORAGE_KEY);
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as Partial<FeasibilityData>;
@@ -56,14 +55,12 @@ function readFromStorage(): FeasibilityData | null {
       ...parsed,
       panelsRequired: String(parsed.panelsRequired ?? ''),
       sunlightHours: Number(parsed.sunlightHours ?? 0),
+      annualSavings: String(parsed.annualSavings ?? ''),
       electricityRate: Number(parsed.electricityRate ?? 0),
-      minMonthlySavings: Number(parsed.minMonthlySavings ?? 0),
-      maxMonthlySavings: Number(parsed.maxMonthlySavings ?? 0),
-      minAnnualSavings: Number(parsed.minAnnualSavings ?? 0),
-      maxAnnualSavings: Number(parsed.maxAnnualSavings ?? 0),
       paybackYears: String(parsed.paybackYears ?? ''),
-      monthlyCO2Saved: Number(parsed.monthlyCO2Saved ?? 0),
-      isDataAvailable: Boolean(parsed.isDataAvailable)
+      co2Saved: String(parsed.co2Saved ?? ''),
+      isDataAvailable: Boolean(parsed.isDataAvailable),
+      timestamp: Number(parsed.timestamp ?? 0)
     };
   } catch (error) {
     console.error('Failed to parse feasibility data from localStorage:', error);
@@ -113,6 +110,7 @@ export function subscribeFeasibilityData(listener: (value: FeasibilityData) => v
 export function resetFeasibilityData(): void {
   if (isBrowser()) {
     window.localStorage.removeItem(FEASIBILITY_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_FEASIBILITY_STORAGE_KEY);
   }
   feasibilityData = { ...defaultFeasibilityData };
   listeners.forEach((listener) => listener(feasibilityData));

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { SectionShell } from './section-shell';
 import { calculateSolarFeasibility } from '@/lib/solar';
-import { setFeasibilityData } from '@/lib/feasibilityContext';
+import { FEASIBILITY_STORAGE_KEY, type FeasibilityData, setFeasibilityData } from '@/lib/feasibilityContext';
 import { FiActivity, FiDollarSign, FiTarget, FiZap } from 'react-icons/fi';
 
 type DemoScenario = 'high' | 'medium' | 'low';
@@ -54,8 +54,6 @@ export function FeasibilityTool({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [hasSharedData, setHasSharedData] = useState(false);
-  const [stayOnPage, setStayOnPage] = useState(false);
-  const stayOnPageRef = useRef(false);
 
   const sunlightProgress = calculatedResult?.sunlightReadiness ?? Math.min(100, Math.round((sunlightHours / 7) * 100));
 
@@ -117,6 +115,50 @@ export function FeasibilityTool({
     setCalculatedResult(null);
     setHasSharedData(false);
     setShareMessage(null);
+  };
+
+  const buildFeasibilityPayload = (result: CalculatedResult, resolvedLocation: string): FeasibilityData => ({
+    location: resolvedLocation,
+    sunlightHours,
+    panelsRequired: `${result.minPanels}-${result.maxPanels} panels`,
+    estimatedOutput: `${result.minDailyKWh}-${result.maxDailyKWh} kWh/day`,
+    feasibilityLevel: result.feasibilityLevel,
+    monthlySavings: `₹${result.minMonthlySavings.toLocaleString('en-IN')}-₹${result.maxMonthlySavings.toLocaleString('en-IN')}`,
+    annualSavings: `₹${result.minAnnualSavings.toLocaleString('en-IN')}-₹${result.maxAnnualSavings.toLocaleString('en-IN')}`,
+    electricityRate: result.electricityRate,
+    paybackYears: result.paybackYears,
+    co2Saved: String(result.monthlyCO2Saved),
+    isDataAvailable: true,
+    timestamp: Date.now()
+  });
+
+  const persistFeasibilityData = (payload: FeasibilityData): boolean => {
+    try {
+      window.localStorage.setItem(
+        FEASIBILITY_STORAGE_KEY,
+        JSON.stringify({
+          location: payload.location,
+          sunlightHours: payload.sunlightHours,
+          panelsRequired: payload.panelsRequired,
+          estimatedOutput: payload.estimatedOutput,
+          feasibilityLevel: payload.feasibilityLevel,
+          monthlySavings: payload.monthlySavings,
+          annualSavings: payload.annualSavings,
+          electricityRate: payload.electricityRate,
+          paybackYears: payload.paybackYears,
+          co2Saved: payload.co2Saved,
+          isDataAvailable: true,
+          timestamp: payload.timestamp
+        })
+      );
+
+      setFeasibilityData(payload);
+      return true;
+    } catch (error) {
+      console.error('Failed to persist feasibility data:', error);
+      setShareMessage('Could not save feasibility data locally. Please try again.');
+      return false;
+    }
   };
 
   const detectLocation = () => {
@@ -244,46 +286,31 @@ export function FeasibilityTool({
       savings: `₹${computed.minMonthlySavings.toLocaleString('en-IN')}–₹${computed.maxMonthlySavings.toLocaleString('en-IN')} monthly`
     });
 
+    const payload = buildFeasibilityPayload(computed, trimmedLocation);
+    persistFeasibilityData(payload);
+
     setIsCalculating(false);
   };
 
   const handleShareWithAI = () => {
     if (!calculatedResult) return;
 
-    const feasibilityLevel =
-      calculatedResult.feasibilityLevel === 'HIGH'
-        ? 'High'
-        : calculatedResult.feasibilityLevel === 'MEDIUM'
-          ? 'Medium'
-          : 'Low';
-
-    setFeasibilityData({
-      location: location.trim(),
-      sunlightHours,
-      panelsRequired: `${calculatedResult.minPanels}–${calculatedResult.maxPanels} panels`,
-      estimatedOutput: `${calculatedResult.minDailyKWh}–${calculatedResult.maxDailyKWh} kWh/day`,
-      feasibilityLevel,
-      monthlySavings: `₹${calculatedResult.minMonthlySavings.toLocaleString('en-IN')}–₹${calculatedResult.maxMonthlySavings.toLocaleString('en-IN')}`,
-      electricityRate: calculatedResult.electricityRate,
-      minMonthlySavings: calculatedResult.minMonthlySavings,
-      maxMonthlySavings: calculatedResult.maxMonthlySavings,
-      minAnnualSavings: calculatedResult.minAnnualSavings,
-      maxAnnualSavings: calculatedResult.maxAnnualSavings,
-      paybackYears: calculatedResult.paybackYears,
-      monthlyCO2Saved: calculatedResult.monthlyCO2Saved,
-      isDataAvailable: true
-    });
+    const payload = buildFeasibilityPayload(calculatedResult, location.trim());
+    const isPersisted = persistFeasibilityData(payload);
+    if (!isPersisted) return;
 
     setHasSharedData(true);
-    setShareMessage('✅ Data sent to Helios AI! Ask me anything about your solar setup.');
-    stayOnPageRef.current = false;
-    setStayOnPage(false);
+    setShareMessage('✅ Data shared! Redirecting to Helios AI...');
 
     window.setTimeout(() => {
-      if (!stayOnPageRef.current) {
-        router.push('/ai-assistant');
-      }
+      router.push('/ai-assistant');
     }, 1500);
+  };
+
+  const handleAskAIAboutResults = () => {
+    if (!calculatedResult) return;
+    const question = `Based on my feasibility results for ${location.trim()}, what do you recommend?`;
+    router.push(`/ai-assistant?q=${encodeURIComponent(question)}`);
   };
 
   return (
@@ -448,17 +475,19 @@ export function FeasibilityTool({
           {shareMessage ? (
             <div className="mt-4 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-4 py-3 text-sm text-emerald-100">
               <p>{shareMessage}</p>
+            </div>
+          ) : null}
+
+          {calculatedResult ? (
+            <div className="mt-4 rounded-2xl border border-amber-300/25 bg-amber-300/10 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-amber-200">Quick Actions</p>
               <button
                 type="button"
-                onClick={() => {
-                  stayOnPageRef.current = true;
-                  setStayOnPage(true);
-                }}
-                className="mt-2 text-xs font-semibold text-emerald-200 underline underline-offset-2"
+                onClick={handleAskAIAboutResults}
+                className="mt-2 w-full rounded-xl border border-amber-300/35 bg-amber-300/15 px-3 py-2 text-sm font-semibold text-amber-100 transition duration-150 hover:border-amber-300/60 hover:bg-amber-300/25"
               >
-                Stay on this page
+                Ask AI about my results →
               </button>
-              {stayOnPage ? <p className="mt-2 text-xs text-emerald-200">Auto-navigation cancelled.</p> : null}
             </div>
           ) : null}
 

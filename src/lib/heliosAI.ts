@@ -1,9 +1,6 @@
 import { supabase } from './supabaseClient';
 import { getFeasibilityData } from './feasibilityContext';
 
-const isFeasibilityRelatedQuestion = (text: string): boolean =>
-  /(panel|solar|feasib|output|saving|cost|location|energy|watt|kilowatt|kwh|sunlight)/i.test(text);
-
 /**
  * Combined Supabase + Gemini AI response logic:
  * 1. Check Supabase knowledge base first
@@ -37,8 +34,13 @@ export async function getAIResponse(userInput: string): Promise<string> {
     // STEP 2: No match in Supabase - try Gemini
     try {
       const feasibilityData = getFeasibilityData();
-      const promptWithContext = feasibilityData.isDataAvailable && isFeasibilityRelatedQuestion(userInput)
-        ? `${userInput}\n\nThe user has already run a feasibility check with these results:\nLocation: ${feasibilityData.location}\nSunlight Hours: ${feasibilityData.sunlightHours} hrs/day\nPanels Required: ${feasibilityData.panelsRequired}\nEstimated Daily Output: ${feasibilityData.estimatedOutput}\nFeasibility: ${feasibilityData.feasibilityLevel}\nMonthly Savings: ${feasibilityData.monthlySavings}\n\nElectricity rate in ${feasibilityData.location}: ₹${feasibilityData.electricityRate}/kWh\nMonthly savings: ₹${feasibilityData.minMonthlySavings.toLocaleString('en-IN')}–₹${feasibilityData.maxMonthlySavings.toLocaleString('en-IN')}\nAnnual savings: ₹${feasibilityData.minAnnualSavings.toLocaleString('en-IN')}–₹${feasibilityData.maxAnnualSavings.toLocaleString('en-IN')}\nPayback period: ${feasibilityData.paybackYears} years\nCO2 saved monthly: ${feasibilityData.monthlyCO2Saved} kg\n\nUse this data to give personalized answers when relevant.`
+      const hasFreshFeasibilityData =
+        feasibilityData.isDataAvailable &&
+        feasibilityData.timestamp > 0 &&
+        Date.now() - feasibilityData.timestamp < 24 * 60 * 60 * 1000;
+
+      const promptWithContext = hasFreshFeasibilityData
+        ? `${userInput}\n\nCONTEXT - User's Solar Feasibility Results:\nLocation: ${feasibilityData.location}\nSunlight Hours: ${feasibilityData.sunlightHours} hrs/day\nPanels Required: ${feasibilityData.panelsRequired}\nDaily Energy Output: ${feasibilityData.estimatedOutput}\nFeasibility Level: ${feasibilityData.feasibilityLevel}\nMonthly Savings: ${feasibilityData.monthlySavings}\nAnnual Savings: ${feasibilityData.annualSavings}\nElectricity Rate: ₹${feasibilityData.electricityRate}/kWh\nPayback Period: ${feasibilityData.paybackYears} years\nCO2 Saved: ${feasibilityData.co2Saved} kg/month\n\nUse this data to give personalized answers to the user.`
         : userInput;
 
       const response = await fetch('/api/gemini', {
