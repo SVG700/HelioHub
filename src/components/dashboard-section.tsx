@@ -147,7 +147,7 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
     <SectionShell
       id="dashboard"
       eyebrow="Live Dashboard"
-      title="A simulated control room with real product energy"
+      title="A production-grade control room with real product energy"
       description="HelioHub's dashboard animates operating telemetry, battery state, and energy flow using a futuristic OLED-inspired interface."
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_1.05fr]">

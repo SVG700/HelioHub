@@ -34,9 +34,9 @@ export function Hero({ onExplore, onFeasibility }: { onExplore: () => void; onFe
           </div>
           <div className="mt-10 grid gap-3 sm:grid-cols-3">
             {[
-              ['Solar Yield', '1.8 MWh/mo'],
-              ['Grid Savings', '28% lower cost'],
-              ['AI Readiness', 'Investor demo ready']
+              ['Solar Yield', '50W Solar System'],
+              ['Grid Savings', '12V 20Ah Storage'],
+              ['AI Readiness', '6 USB Charging Ports']
             ].map(([label, value]) => (
               <div key={label} className="surface-panel lift-card rounded-3xl px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.28em] text-slate-400">{label}</p>

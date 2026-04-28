@@ -2,9 +2,9 @@ import Image from 'next/image';
 import { SectionShell } from './section-shell';
 
 const teamMembers = [
-  { name: 'Samhith', role: 'Development', photo: '/team/samhith-v2.jpeg' },
-  { name: 'Madhan', role: 'Hardware & Systems', photo: '/team/madhan-v2.jpeg' },
-  { name: 'Ruchika', role: 'AI & UI Experience', photo: '/team/ruchika-v2.jpeg' }
+  { name: 'Samhith V Gupta', role: 'Development', photo: '/team/samhith-v2.jpeg' },
+  { name: 'Madhan B V', role: 'Hardware & Systems', photo: '/team/madhan-v2.jpeg' },
+  { name: 'Ruchika Amol Patil', role: 'AI & UI Experience', photo: '/team/ruchika-v2.jpeg' }
 ];
 
 export function TeamSection() {

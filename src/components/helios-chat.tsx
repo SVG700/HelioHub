@@ -332,8 +332,8 @@ export function HeliosChat({
     <SectionShell
       id="ai"
       eyebrow="Helios AI"
-      title="Simulated intelligence for solar conversations"
-      description="A local, intent-aware assistant that uses your solar inputs to generate dynamic answers without any external API dependency."
+      title="Production-grade AI for solar conversations"
+      description="Powered by Gemini AI with solar domain expertise"
     >
       <div className="glass-card lift-card relative overflow-hidden rounded-[2rem] p-6">
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(247,183,51,0.35),transparent_65%)] blur-2xl" />
@@ -346,7 +346,7 @@ export function HeliosChat({
             </div>
             <div>
               <p className="font-display text-lg font-semibold text-white">Helios AI Assistant</p>
-              <p className="text-sm text-slate-400">Production-grade solar intelligence interface</p>
+              <p className="text-sm text-slate-400">AI-powered intelligence interface</p>
             </div>
           </div>
 

@@ -42,7 +42,8 @@ export function Footer() {
 
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Credits</p>
-          <p className="mt-4 leading-7 text-slate-300">Developed by Samhith, Madhan, and Ruchika.</p>
+          <p className="mt-4 leading-7 text-slate-300">Developed by Samhith V Gupta, Madhan B V, and Ruchika Amol Patil.</p>
+          <p className="mt-1 leading-7 text-slate-300">Presidency University, Bangalore</p>
           <p className="mt-1 leading-7 text-slate-300">Guided by Dr. Divyarani M S.</p>
         </div>
       </div>
