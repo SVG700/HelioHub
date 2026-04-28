@@ -7,10 +7,32 @@ import { FiSend, FiUser, FiZap, FiThumbsUp, FiThumbsDown, FiX } from 'react-icon
 import { SectionShell } from './section-shell';
 import type { ChatMessage } from '@/lib/chat';
 import { getAIResponse, saveFeedback } from '@/lib/heliosAI';
-import { getFeasibilityData, loadFeasibilityData, subscribeFeasibilityData, type FeasibilityData } from '@/lib/feasibilityContext';
+import { FEASIBILITY_STORAGE_KEY, resetFeasibilityData, setFeasibilityData, type FeasibilityData } from '@/lib/feasibilityContext';
 
 type HeliosChatMessage = ChatMessage & {
   action?: 'go-feasibility-tool';
+};
+
+const defaultFeasibilityData: FeasibilityData = {
+  location: '',
+  sunlightHours: 0,
+  panelsRequired: '',
+  estimatedOutput: '',
+  feasibilityLevel: 'Medium',
+  monthlySavings: '',
+  annualSavings: '',
+  electricityRate: 0,
+  paybackYears: '',
+  co2Saved: '',
+  isDataAvailable: false,
+  timestamp: 0,
+  expiresAt: 0
+};
+
+const initialWelcomeMessage: HeliosChatMessage = {
+  id: 'welcome',
+  role: 'assistant',
+  content: 'Helios AI online. Ask me about solar feasibility, cost, storage, or energy output.'
 };
 
 export function HeliosChat({
@@ -41,14 +63,10 @@ export function HeliosChat({
 
   const router = useRouter();
 
-  const [messages, setMessages] = useState<HeliosChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: 'Helios AI online. Ask me about solar feasibility, cost, storage, or energy output.'
-    }
-  ]);
-  const [feasibilityData, setFeasibilityStoreData] = useState<FeasibilityData>(() => getFeasibilityData());
+  const [messages, setMessages] = useState<HeliosChatMessage[]>([initialWelcomeMessage]);
+  const [feasibilityData, setFeasibilityStoreData] = useState<FeasibilityData>(defaultFeasibilityData);
+  const [pendingFeasibilityData, setPendingFeasibilityData] = useState<FeasibilityData | null>(null);
+  const [isFeasibilityDataConfirmed, setIsFeasibilityDataConfirmed] = useState(false);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,31 +127,49 @@ export function HeliosChat({
   };
 
   useEffect(() => {
-    const loadedData = loadFeasibilityData();
-    setFeasibilityStoreData(loadedData);
+    const rawStoredData = window.localStorage.getItem(FEASIBILITY_STORAGE_KEY);
+    if (rawStoredData) {
+      try {
+        const parsedData = JSON.parse(rawStoredData) as Partial<FeasibilityData>;
+        const expiresAt = Number(parsedData.expiresAt ?? 0);
 
-    const isFresh = loadedData.timestamp > 0 && Date.now() - loadedData.timestamp < 24 * 60 * 60 * 1000;
-    if (loadedData.isDataAvailable && isFresh) {
-      setFeasibilityBannerLocation(loadedData.location);
-      setIsFeasibilityBannerVisible(true);
+        if (expiresAt > 0 && Date.now() > expiresAt) {
+          window.localStorage.removeItem(FEASIBILITY_STORAGE_KEY);
+          resetFeasibilityData();
+        } else {
+          const candidateData: FeasibilityData = {
+            ...defaultFeasibilityData,
+            ...parsedData,
+            location: String(parsedData.location ?? ''),
+            sunlightHours: Number(parsedData.sunlightHours ?? 0),
+            panelsRequired: String(parsedData.panelsRequired ?? ''),
+            estimatedOutput: String(parsedData.estimatedOutput ?? ''),
+            feasibilityLevel: String(parsedData.feasibilityLevel ?? 'Medium'),
+            monthlySavings: String(parsedData.monthlySavings ?? ''),
+            annualSavings: String(parsedData.annualSavings ?? ''),
+            electricityRate: Number(parsedData.electricityRate ?? 0),
+            paybackYears: String(parsedData.paybackYears ?? ''),
+            co2Saved: String(parsedData.co2Saved ?? ''),
+            isDataAvailable: Boolean(parsedData.isDataAvailable),
+            timestamp: Number(parsedData.timestamp ?? 0),
+            expiresAt
+          };
+
+          if (candidateData.isDataAvailable && candidateData.location.trim().length > 0) {
+            setPendingFeasibilityData(candidateData);
+          }
+        }
+      } catch (parseError) {
+        console.error('Failed to parse stored feasibility data in chat:', parseError);
+        window.localStorage.removeItem(FEASIBILITY_STORAGE_KEY);
+        resetFeasibilityData();
+      }
     }
 
     const prefilledQuestion = new URLSearchParams(window.location.search).get('q');
     if (prefilledQuestion) {
       setInput(prefilledQuestion);
     }
-
-    const unsubscribe = subscribeFeasibilityData((value) => {
-      setFeasibilityStoreData(value);
-
-      const hasFreshData = value.timestamp > 0 && Date.now() - value.timestamp < 24 * 60 * 60 * 1000;
-      if (value.isDataAvailable && hasFreshData) {
-        setFeasibilityBannerLocation(value.location);
-        setIsFeasibilityBannerVisible(true);
-      }
-    });
-
-    return unsubscribe;
   }, []);
 
   const handleFeedback = async (messageId: string, feedbackValue: 'good' | 'bad') => {
@@ -206,9 +242,50 @@ export function HeliosChat({
     await sendPrompt(input);
   };
 
+  const handleUsePreviousFeasibilityData = () => {
+    if (!pendingFeasibilityData) return;
+
+    setFeasibilityData(pendingFeasibilityData);
+    setFeasibilityStoreData(pendingFeasibilityData);
+    setIsFeasibilityDataConfirmed(true);
+    setFeasibilityBannerLocation(pendingFeasibilityData.location);
+    setIsFeasibilityBannerVisible(true);
+    setPendingFeasibilityData(null);
+  };
+
+  const handleStartFreshFromPrompt = () => {
+    window.localStorage.removeItem(FEASIBILITY_STORAGE_KEY);
+    resetFeasibilityData();
+    setFeasibilityStoreData(defaultFeasibilityData);
+    setIsFeasibilityDataConfirmed(false);
+    setIsFeasibilityBannerVisible(false);
+    setFeasibilityBannerLocation('');
+    setPendingFeasibilityData(null);
+    setMessages([initialWelcomeMessage]);
+  };
+
+  const handleClearAndStartFresh = () => {
+    window.localStorage.removeItem(FEASIBILITY_STORAGE_KEY);
+    resetFeasibilityData();
+    setFeasibilityStoreData(defaultFeasibilityData);
+    setIsFeasibilityDataConfirmed(false);
+    setIsFeasibilityBannerVisible(false);
+    setFeasibilityBannerLocation('');
+    setPendingFeasibilityData(null);
+    setMessages([
+      initialWelcomeMessage,
+      {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'Starting fresh! Ask me anything about solar energy.'
+      }
+    ]);
+  };
+
   const getStructuredCards = (message: HeliosChatMessage, userPrompt: string) => {
     if (message.role !== 'assistant') return [] as Array<{ label: string; value: string }>;
     if (!feasibilityData.isDataAvailable) return [] as Array<{ label: string; value: string }>;
+    if (!isFeasibilityDataConfirmed) return [] as Array<{ label: string; value: string }>;
     if (!isFeasibilityQuestion(userPrompt)) return [] as Array<{ label: string; value: string }>;
 
     const asksFeasibility = isFeasibilityRelatedPrompt(userPrompt);
@@ -288,6 +365,34 @@ export function HeliosChat({
           </motion.div>
         ) : null}
 
+        {pendingFeasibilityData ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-xl border border-amber-300/35 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
+          >
+            <p>
+              🌞 I found previous feasibility data for {pendingFeasibilityData.location}. Would you like me to use this data?
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleUsePreviousFeasibilityData}
+                className="rounded-full border border-emerald-300/40 bg-emerald-300/15 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition duration-150 hover:border-emerald-300/65 hover:bg-emerald-300/25"
+              >
+                ✅ Yes, use this data
+              </button>
+              <button
+                type="button"
+                onClick={handleStartFreshFromPrompt}
+                className="rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1.5 text-xs font-semibold text-amber-100 transition duration-150 hover:border-amber-300/65 hover:bg-amber-300/25"
+              >
+                🔄 No, start fresh
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+
         {isFeasibilityBannerVisible && feasibilityBannerLocation ? (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -302,6 +407,13 @@ export function HeliosChat({
               aria-label="Dismiss feasibility banner"
             >
               <FiX className="text-xs" />
+            </button>
+            <button
+              type="button"
+              onClick={handleClearAndStartFresh}
+              className="rounded-full border border-amber-300/35 bg-amber-300/10 px-2.5 py-1 text-xs font-semibold text-amber-100 transition duration-150 hover:border-amber-300/60 hover:bg-amber-300/20"
+            >
+              🔄 Clear &amp; Start Fresh
             </button>
           </motion.div>
         ) : null}

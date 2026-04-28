@@ -1,15 +1,34 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { SectionShell } from './section-shell';
 import { calculateSolarFeasibility } from '@/lib/solar';
-import { FEASIBILITY_STORAGE_KEY, type FeasibilityData, setFeasibilityData } from '@/lib/feasibilityContext';
+import { FEASIBILITY_STORAGE_KEY, type FeasibilityData, type LocationCoordinates, setFeasibilityData } from '@/lib/feasibilityContext';
 import { FiActivity, FiDollarSign, FiTarget, FiZap } from 'react-icons/fi';
 
 type DemoScenario = 'high' | 'medium' | 'low';
 type LocationStatus = 'idle' | 'detecting' | 'success' | 'error' | 'unsupported';
+
+type NominatimAddress = {
+  suburb?: string;
+  neighbourhood?: string;
+  quarter?: string;
+  city_district?: string;
+  village?: string;
+  town?: string;
+  city?: string;
+  county?: string;
+  state?: string;
+};
+
+type LocationSuggestion = {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address?: NominatimAddress;
+};
 
 type CalculatedResult = {
   feasibilityLevel: 'HIGH' | 'MEDIUM' | 'LOW';
@@ -36,6 +55,33 @@ const scenarioDefaults: Record<DemoScenario, { location: string; sunlightHours: 
   low: { location: 'Bengaluru Rain Belt', sunlightHours: 3.8 }
 };
 
+const getPreciseLocationName = (address?: NominatimAddress): string =>
+  address?.suburb ||
+  address?.neighbourhood ||
+  address?.quarter ||
+  address?.city_district ||
+  address?.village ||
+  address?.town ||
+  address?.city ||
+  address?.county ||
+  address?.state ||
+  'Your Location';
+
+const getCityForRates = (address?: NominatimAddress, fallback = 'Your Location'): string =>
+  address?.city || address?.town || address?.village || address?.county || address?.state || fallback;
+
+const getSunlightHoursFromLatitude = (latitude: number): number => {
+  const lat = Math.abs(latitude);
+
+  if (lat < 10) return 6.8;
+  if (lat < 15) return 6.5;
+  if (lat < 20) return 6.2;
+  if (lat < 25) return 6.0;
+  if (lat < 30) return 5.5;
+  if (lat < 35) return 5.0;
+  return 4.5;
+};
+
 export function FeasibilityTool({
   onResult,
   scenario,
@@ -52,8 +98,15 @@ export function FeasibilityTool({
   const [isCalculating, setIsCalculating] = useState(false);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationNeedsConfirmation, setLocationNeedsConfirmation] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [isSearchingLocations, setIsSearchingLocations] = useState(false);
+  const [cityForRates, setCityForRates] = useState('');
+  const [detectedCoordinates, setDetectedCoordinates] = useState<LocationCoordinates | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [hasSharedData, setHasSharedData] = useState(false);
+  const locationInputRef = useRef<HTMLInputElement>(null);
 
   const sunlightProgress = calculatedResult?.sunlightReadiness ?? Math.min(100, Math.round((sunlightHours / 7) * 100));
 
@@ -68,6 +121,12 @@ export function FeasibilityTool({
     setShareMessage(null);
     setLocationStatus('idle');
     setLocationError(null);
+    setLocationAccuracy(null);
+    setLocationNeedsConfirmation(false);
+    setLocationSuggestions([]);
+    setIsSearchingLocations(false);
+    setCityForRates('');
+    setDetectedCoordinates(null);
   }, [scenario, demoMode]);
 
   const resultCards = calculatedResult
@@ -120,6 +179,7 @@ export function FeasibilityTool({
   const buildFeasibilityPayload = (result: CalculatedResult, resolvedLocation: string): FeasibilityData => ({
     location: resolvedLocation,
     sunlightHours,
+    coordinates: detectedCoordinates ?? undefined,
     panelsRequired: `${result.minPanels}-${result.maxPanels} panels`,
     estimatedOutput: `${result.minDailyKWh}-${result.maxDailyKWh} kWh/day`,
     feasibilityLevel: result.feasibilityLevel,
@@ -129,7 +189,8 @@ export function FeasibilityTool({
     paybackYears: result.paybackYears,
     co2Saved: String(result.monthlyCO2Saved),
     isDataAvailable: true,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    expiresAt: Date.now() + (60 * 60 * 1000)
   });
 
   const persistFeasibilityData = (payload: FeasibilityData): boolean => {
@@ -139,6 +200,7 @@ export function FeasibilityTool({
         JSON.stringify({
           location: payload.location,
           sunlightHours: payload.sunlightHours,
+          coordinates: payload.coordinates,
           panelsRequired: payload.panelsRequired,
           estimatedOutput: payload.estimatedOutput,
           feasibilityLevel: payload.feasibilityLevel,
@@ -148,7 +210,8 @@ export function FeasibilityTool({
           paybackYears: payload.paybackYears,
           co2Saved: payload.co2Saved,
           isDataAvailable: true,
-          timestamp: payload.timestamp
+          timestamp: payload.timestamp,
+          expiresAt: payload.expiresAt
         })
       );
 
@@ -164,6 +227,7 @@ export function FeasibilityTool({
   const detectLocation = () => {
     setLocationStatus('detecting');
     setLocationError(null);
+    setLocationSuggestions([]);
 
     if (
       window.location.protocol !== 'https:' &&
@@ -184,10 +248,11 @@ export function FeasibilityTool({
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          const { latitude, longitude } = position.coords;
+          const { latitude, longitude, accuracy } = position.coords;
+          const coordinates = { latitude, longitude, accuracy };
 
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=16&addressdetails=1`,
             { headers: { 'Accept-Language': 'en' } }
           );
           if (!response.ok) {
@@ -195,24 +260,15 @@ export function FeasibilityTool({
           }
 
           const data = await response.json();
-          const city =
-            data?.address?.city ||
-            data?.address?.town ||
-            data?.address?.village ||
-            data?.address?.county ||
-            data?.address?.state ||
-            'Your Location';
+          const preciseName = getPreciseLocationName(data?.address);
+          const cityName = getCityForRates(data?.address, preciseName);
 
-          setLocation(city);
-
-          const lat = Math.abs(latitude);
-          let sunlight = 5.5;
-          if (lat < 15) sunlight = 6.5;
-          else if (lat < 25) sunlight = 6.0;
-          else if (lat < 35) sunlight = 5.0;
-          else sunlight = 4.0;
-
-          setSunlightHours(sunlight);
+          setLocation(preciseName);
+          setCityForRates(cityName);
+          setDetectedCoordinates(coordinates);
+          setLocationAccuracy(accuracy);
+          setSunlightHours(getSunlightHoursFromLatitude(latitude));
+          setLocationNeedsConfirmation(true);
           clearCalculatedState();
           setLocationStatus('success');
         } catch (error) {
@@ -240,11 +296,92 @@ export function FeasibilityTool({
         }
       },
       {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 300000
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
       }
     );
+  };
+
+  useEffect(() => {
+    if (demoMode || locationStatus === 'detecting' || locationNeedsConfirmation) {
+      setLocationSuggestions([]);
+      setIsSearchingLocations(false);
+      return;
+    }
+
+    const query = location.trim();
+    if (query.length < 3) {
+      setLocationSuggestions([]);
+      setIsSearchingLocations(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setIsSearchingLocations(true);
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&addressdetails=1`,
+          {
+            headers: { 'Accept-Language': 'en' },
+            signal: controller.signal
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Location search failed with status ${response.status}`);
+        }
+
+        const data = (await response.json()) as LocationSuggestion[];
+        if (!controller.signal.aborted) {
+          setLocationSuggestions(data.slice(0, 3));
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Location search failed:', error);
+          setLocationSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearchingLocations(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [demoMode, location, locationNeedsConfirmation, locationStatus]);
+
+  const handleSuggestionSelect = (suggestion: LocationSuggestion) => {
+    const latitude = Number(suggestion.lat);
+    const longitude = Number(suggestion.lon);
+    const preciseName = getPreciseLocationName(suggestion.address) || suggestion.display_name;
+    const cityName = getCityForRates(suggestion.address, preciseName);
+
+    setLocation(preciseName);
+    setCityForRates(cityName);
+    setDetectedCoordinates({ latitude, longitude, accuracy: 0 });
+    setLocationAccuracy(null);
+    setSunlightHours(getSunlightHoursFromLatitude(latitude));
+    setLocationStatus('success');
+    setLocationNeedsConfirmation(false);
+    setLocationSuggestions([]);
+    setLocationError(null);
+    clearCalculatedState();
+  };
+
+  const handleConfirmLocation = () => {
+    setLocationNeedsConfirmation(false);
+  };
+
+  const handleEditLocation = () => {
+    setLocationNeedsConfirmation(false);
+    setLocationStatus('idle');
+    locationInputRef.current?.focus();
   };
 
   const handleCalculate = async () => {
@@ -263,7 +400,7 @@ export function FeasibilityTool({
     setIsCalculating(true);
     await new Promise((resolve) => window.setTimeout(resolve, 2000));
 
-    const computed = calculateSolarFeasibility(trimmedLocation, sunlightHours);
+    const computed = calculateSolarFeasibility(trimmedLocation, sunlightHours, cityForRates.trim() || trimmedLocation);
     const feasibilityLevel = computed.feasibilityLevel;
     const recommendation =
       feasibilityLevel === 'HIGH'
@@ -324,16 +461,40 @@ export function FeasibilityTool({
         <div className="glass-card lift-card rounded-[2rem] p-6">
           <label className="block text-sm text-slate-300">Location</label>
           <input
+            ref={locationInputRef}
             value={location}
             onChange={(event) => {
               setLocation(event.target.value);
               setLocationStatus('idle');
               setLocationError(null);
+              setLocationNeedsConfirmation(false);
+              setLocationAccuracy(null);
+              setLocationSuggestions([]);
+              setCityForRates('');
+              setDetectedCoordinates(null);
               clearCalculatedState();
             }}
             className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-amber-300/50"
             placeholder="Enter city, region, or site name"
           />
+
+          {isSearchingLocations ? <p className="mt-2 text-xs text-slate-400">Searching locations...</p> : null}
+
+          {locationSuggestions.length > 0 ? (
+            <div className="mt-2 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/90 shadow-2xl shadow-black/30">
+              {locationSuggestions.map((suggestion) => (
+                <button
+                  key={`${suggestion.lat}-${suggestion.lon}-${suggestion.display_name}`}
+                  type="button"
+                  onClick={() => handleSuggestionSelect(suggestion)}
+                  className="block w-full border-b border-white/5 px-4 py-3 text-left text-sm text-slate-100 transition last:border-b-0 hover:bg-white/5"
+                >
+                  <span className="block font-medium">{getPreciseLocationName(suggestion.address) || suggestion.display_name}</span>
+                  <span className="mt-1 block text-xs text-slate-400">{suggestion.display_name}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <button
             type="button"
@@ -357,7 +518,36 @@ export function FeasibilityTool({
 
           {locationStatus === 'success' && location.trim().length > 0 ? (
             <div className="mt-3 rounded-2xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
-              ✅ Location detected: {location}
+              📍 Location detected: {location}
+              {locationAccuracy !== null ? ` (±${Math.round(locationAccuracy)}m accuracy)` : ''}
+            </div>
+          ) : null}
+
+          {locationStatus === 'success' && locationAccuracy !== null && locationAccuracy > 1000 ? (
+            <div className="mt-3 rounded-2xl border border-amber-300/35 bg-amber-300/10 px-4 py-2 text-sm text-amber-100">
+              ⚠️ Low accuracy detected. You may want to enter your location manually for better results.
+            </div>
+          ) : null}
+
+          {locationNeedsConfirmation ? (
+            <div className="mt-3 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100">
+              <p>📍 Detected: {location} - Is this correct?</p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleConfirmLocation}
+                  className="rounded-2xl border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:border-emerald-300/50 hover:bg-emerald-300/20"
+                >
+                  ✅ Yes, this is correct
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditLocation}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  ✏️ Edit location
+                </button>
+              </div>
             </div>
           ) : null}
 

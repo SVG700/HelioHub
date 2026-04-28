@@ -41,8 +41,8 @@ export async function getAIResponse(userInput: string): Promise<string> {
       const feasibilityData = getFeasibilityData();
       const hasFreshFeasibilityData =
         feasibilityData.isDataAvailable &&
-        feasibilityData.timestamp > 0 &&
-        Date.now() - feasibilityData.timestamp < 24 * 60 * 60 * 1000;
+        feasibilityData.expiresAt > 0 &&
+        Date.now() <= feasibilityData.expiresAt;
 
       const promptWithContext = hasFreshFeasibilityData
         ? `${userInput}\n\nCONTEXT - User's Solar Feasibility Results:\nLocation: ${feasibilityData.location}\nSunlight Hours: ${feasibilityData.sunlightHours} hrs/day\nPanels Required: ${feasibilityData.panelsRequired}\nDaily Energy Output: ${feasibilityData.estimatedOutput}\nFeasibility Level: ${feasibilityData.feasibilityLevel}\nMonthly Savings: ${feasibilityData.monthlySavings}\nAnnual Savings: ${feasibilityData.annualSavings}\nElectricity Rate: ₹${feasibilityData.electricityRate}/kWh\nPayback Period: ${feasibilityData.paybackYears} years\nCO2 Saved: ${feasibilityData.co2Saved} kg/month\n\nUse this data to give personalized answers to the user.`

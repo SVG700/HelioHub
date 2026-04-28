@@ -48,7 +48,11 @@ export const getElectricityRate = (location: string): number => {
   return 8;
 };
 
-export const calculateSolarFeasibility = (location: string, sunlightHours: number): DetailedSolarFeasibility => {
+export const calculateSolarFeasibility = (
+  location: string,
+  sunlightHours: number,
+  electricityRateLocation?: string
+): DetailedSolarFeasibility => {
   const PANEL_WATTAGE = 50;
   const EFFICIENCY = 0.8;
   const PANEL_COST = 3500;
@@ -66,7 +70,7 @@ export const calculateSolarFeasibility = (location: string, sunlightHours: numbe
   const minMonthlyKWh = minDailyKWh * 30;
   const maxMonthlyKWh = maxDailyKWh * 30;
 
-  const electricityRate = getElectricityRate(location);
+  const electricityRate = getElectricityRate(electricityRateLocation ?? location);
 
   const minMonthlySavings = Math.round(minMonthlyKWh * electricityRate);
   const maxMonthlySavings = Math.round(maxMonthlyKWh * electricityRate);
@@ -115,7 +119,7 @@ const formatCurrencyRange = (min: number, max: number, suffix: string): string =
   `₹${min.toLocaleString('en-IN')}–₹${max.toLocaleString('en-IN')} ${suffix}`;
 
 export function estimateSolarOutcome(location: string, sunlightHours: number): FeasibilityResult {
-  const detailed = calculateSolarFeasibility(location, sunlightHours);
+  const detailed = calculateSolarFeasibility(location, sunlightHours, location);
   const feasibility: keyof typeof feasibilityProfiles =
     detailed.feasibilityLevel === 'HIGH' ? 'high' : detailed.feasibilityLevel === 'MEDIUM' ? 'medium' : 'low';
 
