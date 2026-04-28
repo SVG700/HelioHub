@@ -18,9 +18,9 @@ type Telemetry = {
 };
 
 const scenarioRanges: Record<DemoScenario, { voltage: [number, number]; current: [number, number]; temperature: [number, number]; generation: [number, number]; consumption: [number, number] }> = {
-  high: { voltage: [49, 54], current: [12.8, 18], temperature: [28, 38], generation: [33, 50], consumption: [19, 33] },
-  medium: { voltage: [46, 52], current: [9.5, 14], temperature: [30, 40], generation: [21, 38], consumption: [17, 30] },
-  low: { voltage: [43, 49], current: [6.2, 10.2], temperature: [27, 35], generation: [9, 24], consumption: [15, 28] }
+  high: { voltage: [11.5, 14.2], current: [0.5, 4.0], temperature: [28, 35], generation: [18, 34], consumption: [12, 24] },
+  medium: { voltage: [11.5, 14.2], current: [0.5, 4.0], temperature: [28, 35], generation: [12, 24], consumption: [10, 20] },
+  low: { voltage: [11.5, 14.2], current: [0.5, 4.0], temperature: [28, 35], generation: [8, 16], consumption: [9, 18] }
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -35,10 +35,10 @@ function stepValue(current: number, min: number, max: number, drift = 0.8) {
 function makeTelemetryForScenario(scenario: DemoScenario): Telemetry {
   const range = scenarioRanges[scenario];
   return {
-    voltage: Number(((range.voltage[0] + range.voltage[1]) / 2).toFixed(1)),
-    current: Number(((range.current[0] + range.current[1]) / 2).toFixed(1)),
-    battery: scenario === 'high' ? 84 : scenario === 'medium' ? 72 : 58,
-    temperature: Number(((range.temperature[0] + range.temperature[1]) / 2).toFixed(1))
+    voltage: 12.4,
+    current: 2.1,
+    battery: scenario === 'high' ? 88 : scenario === 'medium' ? 73 : 61,
+    temperature: 31.0
   };
 }
 
@@ -154,22 +154,25 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
         <div className="glass-card lift-card rounded-[2rem] p-6">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {[
-              ['Voltage', `${voltage.toFixed(1)} V`],
-              ['Current', `${current.toFixed(1)} A`],
-              ['Power', `${power.toFixed(1)} W`],
-              ['Temp', `${temperature.toFixed(1)} °C`]
-            ].map(([label, value]) => (
-              <div key={label} className="surface-panel rounded-3xl p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{label}</p>
-                <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
+              { label: 'Voltage', value: `${voltage.toFixed(1)} V`, icon: '⚡', tone: 'from-amber-300/18 to-amber-200/6' },
+              { label: 'Current', value: `${current.toFixed(1)} A`, icon: '🔌', tone: 'from-cyan-300/18 to-cyan-200/6' },
+              { label: 'Power', value: `${power.toFixed(1)} W`, icon: '☀️', tone: 'from-emerald-300/18 to-emerald-200/6' },
+              { label: 'Temp', value: `${temperature.toFixed(1)} °C`, icon: '🌡️', tone: 'from-violet-300/18 to-violet-200/6' }
+            ].map((item) => (
+              <div key={item.label} className={`surface-panel rounded-3xl border border-white/10 bg-gradient-to-br ${item.tone} p-4 shadow-[0_0_22px_rgba(255,255,255,0.03)]`}>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{item.label}</p>
+                  <span className="text-lg">{item.icon}</span>
+                </div>
+                <p className="mt-3 text-4xl font-black tracking-tight text-white shadow-[0_0_12px_rgba(255,255,255,0.08)]">{item.value}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-6 rounded-[2rem] border border-amber-300/10 bg-[linear-gradient(145deg,rgba(247,183,51,0.07),rgba(15,43,77,0.24))] p-5">
             <div className="flex items-center justify-between text-sm text-slate-300">
-              <span>Battery Charge</span>
-              <span>{battery.toFixed(0)}%</span>
+              <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(54,242,164,0.8)]" /> Battery Charge</span>
+              <span className="text-base font-semibold text-emerald-100 shadow-[0_0_10px_rgba(54,242,164,0.22)]">{battery.toFixed(0)}%</span>
             </div>
             <div className="mt-4 h-4 overflow-hidden rounded-full bg-white/10 shadow-[inset_0_0_18px_rgba(255,255,255,0.08)]">
               <motion.div animate={{ width: `${battery}%` }} transition={{ duration: 1.1, ease: 'easeInOut' }} className="h-full rounded-full bg-gradient-to-r from-amber-300 via-emerald-300 to-lime-300 shadow-[0_0_18px_rgba(54,242,164,0.45)]" />
@@ -188,8 +191,9 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
               <p className="text-sm uppercase tracking-[0.3em] text-amber-200">Energy Flow</p>
               <h3 className="font-display mt-2 text-2xl font-semibold text-white">Generation vs Consumption</h3>
             </div>
-            <div className={`rounded-full border px-3 py-1 text-sm ${demoMode ? 'border-emerald-300/30 bg-emerald-300/15 text-emerald-100 shadow-[0_0_20px_rgba(54,242,164,0.24)]' : 'border-slate-400/25 bg-slate-500/15 text-slate-300'}`}>
-              {demoMode ? 'Live' : 'Paused'}
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${demoMode ? 'border-emerald-300/30 bg-emerald-300/15 text-emerald-100 shadow-[0_0_20px_rgba(54,242,164,0.24)]' : 'border-slate-400/25 bg-slate-500/15 text-slate-300'}`}>
+              <span className={`h-2.5 w-2.5 rounded-full ${demoMode ? 'bg-emerald-300 shadow-[0_0_16px_rgba(54,242,164,0.85)] animate-pulse' : 'bg-slate-500'}`} />
+              {demoMode ? 'LIVE' : 'Paused'}
             </div>
           </div>
           <div className="relative h-[320px] overflow-hidden rounded-[1.75rem] bg-slate-950/70 p-4">
@@ -205,13 +209,16 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {[
-              ['Solar Harvest', '1.8 kWh'],
-              ['Storage Reserve', '4.2 kWh'],
-              ['Output Utilization', '87%']
-            ].map(([label, value]) => (
-              <div key={label} className="surface-panel rounded-3xl p-4">
-                <p className="text-xs uppercase tracking-[0.25em] text-slate-400">{label}</p>
-                <p className="mt-3 text-xl font-semibold text-white">{value}</p>
+              { label: 'Solar Harvest', value: '0.32 kWh', icon: '☀️' },
+              { label: 'Storage Reserve', value: '78%', icon: '🔋' },
+              { label: 'Output Utilization', value: '87%', icon: '📈' }
+            ].map((item) => (
+              <div key={item.label} className="surface-panel rounded-3xl border border-white/10 p-4 shadow-[0_0_22px_rgba(255,255,255,0.03)]">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-[0.25em] text-slate-400">{item.label}</p>
+                  <span className="text-lg">{item.icon}</span>
+                </div>
+                <p className="mt-3 text-2xl font-bold text-white shadow-[0_0_10px_rgba(255,255,255,0.06)]">{item.value}</p>
               </div>
             ))}
           </div>

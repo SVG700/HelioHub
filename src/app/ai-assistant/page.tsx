@@ -14,7 +14,7 @@ export default function AIAssistantPage() {
           <p className="text-sm uppercase tracking-[0.3em] text-amber-200">AI Assistant</p>
           <h1 className="font-display mt-3 text-3xl font-semibold text-white sm:text-4xl">Helios AI for solar decisions</h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-            A dedicated conversation workspace with automatic demo responses, typing feedback, and context-aware analysis.
+            AI-Powered Intelligence for solar decisions with Gemini-backed context-aware analysis.
           </p>
         </motion.div>
 

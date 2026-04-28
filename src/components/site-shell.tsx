@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import { useEffect, useState, type ReactNode } from 'react';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiSun, FiX } from 'react-icons/fi';
 import { HelioStateProvider, useHelioState } from './helio-state';
 import { Footer } from './footer';
 import { ThemeToggle } from './theme-toggle';
@@ -42,13 +42,14 @@ function Navigation() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#040816]/80 backdrop-blur-xl">
+      <div className="h-px w-full bg-[linear-gradient(90deg,transparent,rgba(247,183,51,0.9),rgba(54,242,164,0.85),transparent)]" />
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(145deg,rgba(247,183,51,0.28),rgba(54,242,164,0.1))] text-sm font-semibold text-white shadow-[0_0_22px_rgba(247,183,51,0.18)]">
-            H
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(145deg,rgba(247,183,51,0.34),rgba(54,242,164,0.12))] text-lg font-bold text-white shadow-[0_0_24px_rgba(247,183,51,0.24)] transition duration-200 group-hover:scale-105">
+            <FiSun className="text-[1.05rem]" />
           </div>
           <div>
-            <p className="font-display text-xs uppercase tracking-[0.38em] text-amber-200/90">HelioHub</p>
+            <p className="font-display text-sm uppercase tracking-[0.38em] text-amber-200/90 sm:text-base">HelioHub</p>
             <p className="text-sm text-slate-300">Smart Solar Charging Station</p>
           </div>
         </Link>
@@ -61,10 +62,13 @@ function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-full px-4 py-2 text-sm transition ${active ? 'bg-gradient-to-r from-amber-300 to-emerald-300 text-slate-950 shadow-[0_0_20px_rgba(247,183,51,0.18)]' : 'text-slate-300 hover:text-white'}`}
+                className={`group relative rounded-full px-4 py-2 text-sm transition ${active ? 'bg-gradient-to-r from-amber-300 to-emerald-300 text-slate-950 shadow-[0_0_20px_rgba(247,183,51,0.18)]' : 'text-slate-300 hover:text-white'}`}
                 aria-current={active ? 'page' : undefined}
               >
                 {item.label}
+                <span
+                  className={`absolute inset-x-3 -bottom-0.5 h-0.5 origin-center scale-x-0 rounded-full bg-[linear-gradient(90deg,rgba(247,183,51,0),rgba(247,183,51,1),rgba(54,242,164,1),rgba(247,183,51,0))] transition-transform duration-300 group-hover:scale-x-100 ${active ? 'scale-x-100 shadow-[0_0_12px_rgba(247,183,51,0.65)]' : ''}`}
+                />
               </Link>
             );
           })}
@@ -140,6 +144,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <HelioStateProvider>
       <div className="min-h-screen bg-[#040816] text-white">
+        <ScrollProgress />
         <div className="fixed inset-0 -z-20 bg-solar-radial" />
         <div className="fixed inset-0 -z-10 opacity-40 blur-3xl">
           <div className="absolute left-0 top-20 h-72 w-72 rounded-full bg-cyan-400/20" />
@@ -152,6 +157,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <Footer />
       </div>
     </HelioStateProvider>
+  );
+}
+
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 25, restDelta: 0.001 });
+
+  return (
+    <motion.div
+      className="fixed left-0 top-0 z-[60] h-[3px] w-full origin-left bg-[linear-gradient(90deg,rgba(247,183,51,1),rgba(54,242,164,1),rgba(56,189,248,1))]"
+      style={{ scaleX }}
+    />
   );
 }
 

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { FiArrowUp } from 'react-icons/fi';
+import { FiArrowUp, FiSun } from 'react-icons/fi';
 
 const quickLinks = [
   { href: '/', label: 'Home' },
@@ -23,9 +23,10 @@ export function Footer() {
 
   return (
     <footer className="relative mt-10 border-t border-cyan-300/10 bg-[#030712]/95 px-4 pb-8 pt-12 text-sm text-slate-300 shadow-[0_-10px_50px_rgba(0,0,0,0.3)] sm:px-6 lg:px-8">
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(247,183,51,0.9),rgba(54,242,164,0.85),transparent)]" />
       <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-3">
         <div>
-          <p className="font-display text-xl font-semibold text-white">HelioHub</p>
+          <p className="font-display inline-flex items-center gap-2 text-xl font-semibold text-white"><FiSun className="text-amber-200" /> HelioHub</p>
           <p className="mt-3 max-w-sm leading-7 text-slate-400">AI-Powered Solar Solutions for a Brighter Tomorrow</p>
         </div>
 
@@ -33,8 +34,11 @@ export function Footer() {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Quick Links</p>
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-1">
             {quickLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="w-fit text-slate-300 transition hover:translate-x-1 hover:text-amber-200">
-                {link.label}
+              <Link key={link.href} href={link.href} className="group w-fit text-slate-300 transition hover:text-amber-200">
+                <span className="relative inline-block">
+                  {link.label}
+                  <span className="absolute inset-x-0 -bottom-1 h-px origin-left scale-x-0 bg-[linear-gradient(90deg,rgba(247,183,51,1),rgba(54,242,164,1))] transition-transform duration-300 group-hover:scale-x-100" />
+                </span>
               </Link>
             ))}
           </div>
