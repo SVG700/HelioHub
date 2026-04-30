@@ -5,6 +5,8 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
 import { SectionShell } from './section-shell';
+import { supabase } from '@/lib/supabaseClient';
+import { DEFAULT_SENSOR_READING, normalizeSensorReading, type SensorReading } from '@/lib/sensorReadings';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
@@ -15,6 +17,7 @@ type Telemetry = {
   current: number;
   battery: number;
   temperature: number;
+  power: number;
 };
 
 const scenarioRanges: Record<DemoScenario, { voltage: [number, number]; current: [number, number]; temperature: [number, number]; generation: [number, number]; consumption: [number, number] }> = {
@@ -32,13 +35,39 @@ function stepValue(current: number, min: number, max: number, drift = 0.8) {
   return Number(clamp(next, min, max).toFixed(1));
 }
 
-function makeTelemetryForScenario(scenario: DemoScenario): Telemetry {
-  const range = scenarioRanges[scenario];
+function demoTelemetryForScenario(scenario: DemoScenario): Telemetry {
+  const battery = scenario === 'high' ? 88 : scenario === 'medium' ? 73 : 61;
+
   return {
     voltage: 12.4,
     current: 2.1,
-    battery: scenario === 'high' ? 88 : scenario === 'medium' ? 73 : 61,
-    temperature: 31.0
+    battery,
+    temperature: 31.0,
+    power: 26.0
+  };
+}
+
+function makeTelemetryForScenario(scenario: DemoScenario): Telemetry {
+  return demoTelemetryForScenario(scenario);
+}
+
+function telemetryFromSensorReading(reading: SensorReading): Telemetry {
+  return {
+    voltage: Number(reading.voltage.toFixed(1)),
+    current: Number(reading.current_amp.toFixed(1)),
+    battery: Number(reading.battery_percent.toFixed(0)),
+    temperature: Number(reading.temperature.toFixed(1)),
+    power: Number(reading.power.toFixed(1))
+  };
+}
+
+function seriesFromReading(reading: Telemetry) {
+  const generationSeed = reading.power;
+  const consumptionSeed = Math.max(8, reading.power * 0.72);
+
+  return {
+    generation: Array.from({ length: 6 }, (_, index) => Number(clamp(generationSeed - 6 + index * 2.4 + (Math.random() - 0.5) * 2, 6, 60).toFixed(1))),
+    consumption: Array.from({ length: 6 }, (_, index) => Number(clamp(consumptionSeed - 5 + index * 1.6 + (Math.random() - 0.5) * 1.5, 4, 48).toFixed(1)))
   };
 }
 
@@ -48,10 +77,17 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
   const [telemetry, setTelemetry] = useState<Telemetry>(makeTelemetryForScenario(scenario));
   const [generationSeries, setGenerationSeries] = useState([12, 22, 36, 42, 28, 15]);
   const [consumptionSeries, setConsumptionSeries] = useState([8, 16, 24, 30, 35, 18]);
+  const [isLiveData, setIsLiveData] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [loadingLiveData, setLoadingLiveData] = useState(true);
 
   useEffect(() => {
+    if (isLiveData) return;
     setTelemetry(makeTelemetryForScenario(scenario));
-  }, [scenario]);
+    const series = seriesFromReading(makeTelemetryForScenario(scenario));
+    setGenerationSeries(series.generation);
+    setConsumptionSeries(series.consumption);
+  }, [scenario, isLiveData]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setReady(true), 700);
@@ -59,7 +95,7 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
   }, []);
 
   useEffect(() => {
-    if (!demoMode) return;
+    if (!demoMode || isLiveData) return;
 
     const id = window.setInterval(() => {
       setTelemetry((current) => {
@@ -73,7 +109,8 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
           voltage: stepValue(current.voltage, range.voltage[0], range.voltage[1], 1.1),
           current: stepValue(current.current, range.current[0], range.current[1], 0.85),
           battery: Number(nextBattery.toFixed(1)),
-          temperature: stepValue(current.temperature, range.temperature[0], range.temperature[1], 0.65)
+          temperature: stepValue(current.temperature, range.temperature[0], range.temperature[1], 0.65),
+          power: Number((current.voltage * current.current).toFixed(1))
         };
       });
 
@@ -91,11 +128,97 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
     }, 2400);
 
     return () => window.clearInterval(id);
-  }, [demoMode, scenario, chargeDirection]);
+  }, [demoMode, scenario, chargeDirection, isLiveData]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadLatestSensorReading = async () => {
+      setLoadingLiveData(true);
+
+      try {
+        const { data, error } = await supabase
+          .from('sensor_readings')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          throw error;
+        }
+
+        const latestRow = data?.[0];
+
+        if (!isActive) return;
+
+        if (latestRow) {
+          const normalizedRow = normalizeSensorReading(latestRow);
+          const liveReading = telemetryFromSensorReading(normalizedRow);
+          const series = seriesFromReading(liveReading);
+
+          setTelemetry(liveReading);
+          setGenerationSeries(series.generation);
+          setConsumptionSeries(series.consumption);
+          setIsLiveData(true);
+          setLastUpdated(normalizedRow.created_at ?? new Date().toISOString());
+        } else {
+          const demoReading = makeTelemetryForScenario(scenario);
+          const series = seriesFromReading(demoReading);
+
+          setTelemetry(demoReading);
+          setGenerationSeries(series.generation);
+          setConsumptionSeries(series.consumption);
+          setIsLiveData(false);
+          setLastUpdated(new Date().toISOString());
+        }
+      } catch {
+        if (!isActive) return;
+        const demoReading = makeTelemetryForScenario(scenario);
+        const series = seriesFromReading(demoReading);
+
+        setTelemetry(demoReading);
+        setGenerationSeries(series.generation);
+        setConsumptionSeries(series.consumption);
+        setIsLiveData(false);
+        setLastUpdated(new Date().toISOString());
+      } finally {
+        if (isActive) setLoadingLiveData(false);
+      }
+    };
+
+    void loadLatestSensorReading();
+
+    const refreshId = window.setInterval(() => {
+      void loadLatestSensorReading();
+    }, 10_000);
+
+    const channel = supabase
+      .channel('sensor_readings')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sensor_readings' }, (payload) => {
+        if (!isActive) return;
+
+        const normalizedRow = normalizeSensorReading(payload.new as Record<string, unknown>);
+        const liveReading = telemetryFromSensorReading(normalizedRow);
+        const series = seriesFromReading(liveReading);
+
+        setTelemetry(liveReading);
+        setGenerationSeries(series.generation);
+        setConsumptionSeries(series.consumption);
+        setIsLiveData(true);
+        setLastUpdated(normalizedRow.created_at ?? new Date().toISOString());
+      })
+      .subscribe();
+
+    return () => {
+      isActive = false;
+      window.clearInterval(refreshId);
+      void supabase.removeChannel(channel);
+    };
+  }, [scenario]);
 
   const voltage = telemetry.voltage;
   const current = telemetry.current;
-  const power = Number((voltage * current).toFixed(1));
+  const power = telemetry.power ?? Number((voltage * current).toFixed(1));
   const temperature = telemetry.temperature;
   const battery = telemetry.battery;
 
@@ -191,10 +314,14 @@ export function DashboardSection({ demoMode, scenario }: { demoMode: boolean; sc
               <p className="text-sm uppercase tracking-[0.3em] text-amber-200">Energy Flow</p>
               <h3 className="font-display mt-2 text-2xl font-semibold text-white">Generation vs Consumption</h3>
             </div>
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${demoMode ? 'border-emerald-300/30 bg-emerald-300/15 text-emerald-100 shadow-[0_0_20px_rgba(54,242,164,0.24)]' : 'border-slate-400/25 bg-slate-500/15 text-slate-300'}`}>
-              <span className={`h-2.5 w-2.5 rounded-full ${demoMode ? 'bg-emerald-300 shadow-[0_0_16px_rgba(54,242,164,0.85)] animate-pulse' : 'bg-slate-500'}`} />
-              {demoMode ? 'LIVE' : 'Paused'}
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm ${isLiveData ? 'border-emerald-300/30 bg-emerald-300/15 text-emerald-100 shadow-[0_0_20px_rgba(54,242,164,0.24)]' : 'border-amber-300/25 bg-amber-300/10 text-amber-100'}`}>
+              <span className={`h-2.5 w-2.5 rounded-full ${isLiveData ? 'bg-emerald-300 shadow-[0_0_16px_rgba(54,242,164,0.85)] animate-pulse' : 'bg-amber-300 shadow-[0_0_12px_rgba(247,183,51,0.7)] animate-pulse'}`} />
+              {isLiveData ? 'Live Data' : 'Demo Mode'}
             </div>
+          </div>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-slate-400">
+            <span>{loadingLiveData ? 'Syncing sensor readings...' : isLiveData ? 'Reading from Supabase sensor_readings' : 'Using local demo values'}</span>
+            <span>Last updated: {lastUpdated ? new Date(lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}</span>
           </div>
           <div className="relative h-[320px] overflow-hidden rounded-[1.75rem] bg-slate-950/70 p-4">
             {!ready ? (

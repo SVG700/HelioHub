@@ -66,3 +66,21 @@ CREATE POLICY "Allow public insert logs"
   FOR INSERT
   TO PUBLIC
   WITH CHECK (true);
+
+-- 4. Sensor Readings Table
+CREATE TABLE IF NOT EXISTS sensor_readings (
+  id bigserial PRIMARY KEY,
+  voltage float4 NOT NULL DEFAULT 12.4,
+  current_amp float4 NOT NULL DEFAULT 2.1,
+  power float4 NOT NULL DEFAULT 26.0,
+  temperature float4 NOT NULL DEFAULT 31.0,
+  battery_percent int4 NOT NULL DEFAULT 73,
+  charge_controller boolean DEFAULT true,
+  thermal_guard boolean DEFAULT true,
+  load_balancing boolean DEFAULT true,
+  emergency_mode boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+GRANT SELECT, INSERT ON sensor_readings TO anon;
+GRANT USAGE, SELECT ON SEQUENCE sensor_readings_id_seq TO anon;

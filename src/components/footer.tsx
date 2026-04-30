@@ -49,6 +49,9 @@ export function Footer() {
           <p className="mt-4 leading-7 text-slate-300">Developed by Samhith V Gupta, Madhan B V, and Ruchika Amol Patil.</p>
           <p className="mt-1 leading-7 text-slate-300">Presidency University, Bangalore</p>
           <p className="mt-1 leading-7 text-slate-300">Guided by Dr. Divyarani M S.</p>
+          <Link href="/admin" className="mt-4 inline-block text-[10px] uppercase tracking-[0.28em] text-slate-500/70 transition hover:text-amber-200/70">
+            Admin
+          </Link>
         </div>
       </div>
 
