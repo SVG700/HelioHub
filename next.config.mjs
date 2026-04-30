@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  experimental: {
-    turbo: {}
-  }
-};
+  allowedDevOrigins: ['192.168.56.1'],
+}
 
-export default nextConfig;
+export default nextConfig 

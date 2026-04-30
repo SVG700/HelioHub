@@ -8,6 +8,25 @@ export function Hero({ onExplore, onFeasibility }: { onExplore: () => void; onFe
     <section className="relative overflow-hidden px-4 pt-8 sm:px-6 lg:px-8 lg:pt-12">
       <div className="absolute inset-0 -z-10 bg-solar-radial" />
       <div className="grid-overlay absolute inset-0 -z-20 opacity-20" />
+      
+      {/* Subtle background energy grid */}
+      <svg
+        className="absolute inset-0 -z-20 h-full w-full opacity-[0.08]"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <pattern id="energyGrid" x="40" y="40" width="80" height="80" patternUnits="userSpaceOnUse">
+            <circle cx="40" cy="40" r="1.5" fill="#facc15" opacity="0.6">
+              <animate attributeName="opacity" values="0.3;0.8;0.3" dur="4s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="40" cy="40" r="3" fill="none" stroke="#facc15" strokeWidth="0.5" opacity="0.4">
+              <animate attributeName="r" values="3;6;3" dur="4s" repeatCount="indefinite" />
+            </circle>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#energyGrid)" />
+      </svg>
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10"
@@ -79,34 +98,158 @@ export function Hero({ onExplore, onFeasibility }: { onExplore: () => void; onFe
           </div>
         </div>
 
-        <div className="glass-card relative mx-auto w-full max-w-xl overflow-hidden rounded-[2rem] p-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-400/10 via-transparent to-emerald-300/10" />
-          <div className="relative space-y-4">
-            <div className="flex items-center justify-between text-sm text-slate-300">
-              <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(54,242,164,0.8)]" /> Live System Core</span>
-              <span className="rounded-full border border-emerald-400/30 px-3 py-1 text-emerald-200">Operational</span>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                ['Sun Harvest', '92%'],
-                ['Battery Sync', '87%'],
-                ['Output Stability', '95%'],
-                ['AI Confidence', 'High']
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_0_18px_rgba(255,255,255,0.03)]">
-                  <p className="text-sm text-slate-400">{label}</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-3xl border border-cyan-400/10 bg-slate-950/50 p-5">
-              <div className="flex items-center justify-between text-sm text-slate-400">
-                <span>Solar Glow Spectrum</span>
-                <span className="animate-pulse text-amber-200">Tracking</span>
-              </div>
-              <div className="mt-4 h-40 rounded-3xl bg-[radial-gradient(circle_at_center,rgba(247,183,51,0.32),transparent_36%),radial-gradient(circle_at_75%_25%,rgba(54,242,164,0.22),transparent_20%),linear-gradient(135deg,rgba(15,23,42,0.95),rgba(2,6,23,0.8))]" />
-            </div>
-          </div>
+        {/* Solar System Animation - Desktop and Mobile */}
+        <div className="mx-auto hidden w-full max-w-xl flex-col items-center justify-center lg:flex">
+          <svg 
+            viewBox="0 0 400 400" 
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-auto w-full drop-shadow-[0_0_30px_rgba(250,204,21,0.25)]"
+          >
+            {/* Animated Sun */}
+            <circle cx="200" cy="100" r="40" fill="#facc15" opacity="0.9">
+              <animate attributeName="r" values="40;45;40" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" repeatCount="indefinite"/>
+            </circle>
+            
+            {/* Sun rays rotating */}
+            <g>
+              <animateTransform attributeName="transform" type="rotate" 
+                from="0 200 100" to="360 200 100" dur="20s" repeatCount="indefinite"/>
+              <line x1="200" y1="45" x2="200" y2="30" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="200" y1="155" x2="200" y2="170" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="145" y1="100" x2="130" y2="100" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="255" y1="100" x2="270" y2="100" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="159" y1="59" x2="148" y2="48" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="241" y1="141" x2="252" y2="152" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="241" y1="59" x2="252" y2="48" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="159" y1="141" x2="148" y2="152" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+            </g>
+
+            {/* Solar Panel */}
+            <rect x="140" y="170" width="120" height="80" rx="5" 
+              fill="none" stroke="#60a5fa" strokeWidth="2"/>
+            <line x1="200" y1="170" x2="200" y2="250" stroke="#60a5fa" strokeWidth="1" opacity="0.5"/>
+            <line x1="140" y1="210" x2="260" y2="210" stroke="#60a5fa" strokeWidth="1" opacity="0.5"/>
+            <rect x="145" y="175" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+            <rect x="205" y="175" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+            <rect x="145" y="215" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+            <rect x="205" y="215" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+
+            {/* Energy flow line from panel to battery */}
+            <path d="M 200 250 L 200 290" stroke="#facc15" strokeWidth="2" 
+              strokeDasharray="5,5">
+              <animate attributeName="strokeDashoffset" values="0;-20" 
+                dur="1s" repeatCount="indefinite"/>
+            </path>
+
+            {/* Battery */}
+            <rect x="160" y="290" width="80" height="50" rx="5" 
+              fill="none" stroke="#34d399" strokeWidth="2"/>
+            <rect x="185" y="283" width="30" height="8" rx="2" fill="#34d399"/>
+            <rect x="165" y="295" width="50" height="35" rx="3" fill="#065f46" opacity="0.8">
+              <animate attributeName="width" values="10;50;10" dur="4s" repeatCount="indefinite"/>
+            </rect>
+            <text x="200" y="318" textAnchor="middle" fill="#34d399" fontSize="10">
+              BATTERY
+            </text>
+
+            {/* Energy flow line from battery to output */}
+            <path d="M 200 340 L 200 370" stroke="#34d399" strokeWidth="2" 
+              strokeDasharray="5,5">
+              <animate attributeName="strokeDashoffset" values="0;-20" 
+                dur="1s" repeatCount="indefinite"/>
+            </path>
+
+            {/* USB Output */}
+            <rect x="150" y="370" width="100" height="30" rx="5" 
+              fill="none" stroke="#a78bfa" strokeWidth="2"/>
+            <text x="200" y="390" textAnchor="middle" fill="#a78bfa" fontSize="10">
+              USB OUTPUT
+            </text>
+
+            {/* Glow effects */}
+            <circle cx="200" cy="100" r="60" fill="#facc15" opacity="0.05">
+              <animate attributeName="r" values="60;70;60" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.05;0.1;0.05" dur="3s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+
+        {/* Mobile Solar System Animation */}
+        <div className="mx-auto flex w-full flex-col items-center justify-center lg:hidden">
+          <svg 
+            viewBox="0 0 400 400" 
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-auto w-full max-w-sm drop-shadow-[0_0_30px_rgba(250,204,21,0.25)]"
+          >
+            {/* Animated Sun */}
+            <circle cx="200" cy="100" r="40" fill="#facc15" opacity="0.9">
+              <animate attributeName="r" values="40;45;40" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" repeatCount="indefinite"/>
+            </circle>
+            
+            {/* Sun rays rotating */}
+            <g>
+              <animateTransform attributeName="transform" type="rotate" 
+                from="0 200 100" to="360 200 100" dur="20s" repeatCount="indefinite"/>
+              <line x1="200" y1="45" x2="200" y2="30" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="200" y1="155" x2="200" y2="170" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="145" y1="100" x2="130" y2="100" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="255" y1="100" x2="270" y2="100" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="159" y1="59" x2="148" y2="48" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="241" y1="141" x2="252" y2="152" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="241" y1="59" x2="252" y2="48" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+              <line x1="159" y1="141" x2="148" y2="152" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+            </g>
+
+            {/* Solar Panel */}
+            <rect x="140" y="170" width="120" height="80" rx="5" 
+              fill="none" stroke="#60a5fa" strokeWidth="2"/>
+            <line x1="200" y1="170" x2="200" y2="250" stroke="#60a5fa" strokeWidth="1" opacity="0.5"/>
+            <line x1="140" y1="210" x2="260" y2="210" stroke="#60a5fa" strokeWidth="1" opacity="0.5"/>
+            <rect x="145" y="175" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+            <rect x="205" y="175" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+            <rect x="145" y="215" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+            <rect x="205" y="215" width="50" height="30" fill="#1e40af" opacity="0.6"/>
+
+            {/* Energy flow line from panel to battery */}
+            <path d="M 200 250 L 200 290" stroke="#facc15" strokeWidth="2" 
+              strokeDasharray="5,5">
+              <animate attributeName="strokeDashoffset" values="0;-20" 
+                dur="1s" repeatCount="indefinite"/>
+            </path>
+
+            {/* Battery */}
+            <rect x="160" y="290" width="80" height="50" rx="5" 
+              fill="none" stroke="#34d399" strokeWidth="2"/>
+            <rect x="185" y="283" width="30" height="8" rx="2" fill="#34d399"/>
+            <rect x="165" y="295" width="50" height="35" rx="3" fill="#065f46" opacity="0.8">
+              <animate attributeName="width" values="10;50;10" dur="4s" repeatCount="indefinite"/>
+            </rect>
+            <text x="200" y="318" textAnchor="middle" fill="#34d399" fontSize="10">
+              BATTERY
+            </text>
+
+            {/* Energy flow line from battery to output */}
+            <path d="M 200 340 L 200 370" stroke="#34d399" strokeWidth="2" 
+              strokeDasharray="5,5">
+              <animate attributeName="strokeDashoffset" values="0;-20" 
+                dur="1s" repeatCount="indefinite"/>
+            </path>
+
+            {/* USB Output */}
+            <rect x="150" y="370" width="100" height="30" rx="5" 
+              fill="none" stroke="#a78bfa" strokeWidth="2"/>
+            <text x="200" y="390" textAnchor="middle" fill="#a78bfa" fontSize="10">
+              USB OUTPUT
+            </text>
+
+            {/* Glow effects */}
+            <circle cx="200" cy="100" r="60" fill="#facc15" opacity="0.05">
+              <animate attributeName="r" values="60;70;60" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.05;0.1;0.05" dur="3s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
         </div>
       </motion.div>
     </section>

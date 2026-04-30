@@ -61,21 +61,70 @@ export default function HomePage() {
         <motion.section {...sectionMotion} className="mt-10 glass-card rounded-[2rem] p-5 sm:mt-12 sm:p-6">
           <p className="text-xs uppercase tracking-[0.3em] text-cyan-200">How It Works</p>
           <h2 className="font-display mt-3 max-w-[24ch] text-2xl font-semibold text-white sm:text-3xl">From sunlight to smart output</h2>
-          <div className="mt-5 grid gap-3 sm:mt-6 md:grid-cols-5">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:mt-6 md:gap-3">
             {[
-              { label: 'Solar Panel', icon: FiSun, tone: 'from-amber-300/30 to-amber-100/10', accent: 'text-amber-100' },
-              { label: 'Charge Controller', icon: FiLayers, tone: 'from-orange-300/28 to-orange-100/8', accent: 'text-orange-100' },
-              { label: 'Battery', icon: FiBatteryCharging, tone: 'from-cyan-300/28 to-cyan-100/8', accent: 'text-cyan-100' },
-              { label: 'DC-DC Converter', icon: FiActivity, tone: 'from-violet-300/28 to-violet-100/8', accent: 'text-violet-100' },
-              { label: 'Output', icon: FiZap, tone: 'from-emerald-300/28 to-emerald-100/8', accent: 'text-emerald-100' }
+              { label: 'Solar Panel', color: '#facc15', lightColor: 'rgba(250,204,21,0.3)', icon: '☀️' },
+              { label: 'Charge Controller', color: '#f97316', lightColor: 'rgba(249,115,22,0.3)', icon: '⚙️' },
+              { label: 'Battery', color: '#34d399', lightColor: 'rgba(52,211,153,0.3)', icon: '🔋' },
+              { label: 'DC-DC Converter', color: '#a78bfa', lightColor: 'rgba(167,139,250,0.3)', icon: '⚡' },
+              { label: 'Output', color: '#60a5fa', lightColor: 'rgba(96,165,250,0.3)', icon: '🔌' }
             ].map((step, index) => (
-              <div key={step.label} className={`relative rounded-2xl border border-white/10 bg-gradient-to-br ${step.tone} p-4 text-center shadow-[0_0_20px_rgba(255,255,255,0.03)]`}>
-                <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 ${step.accent}`}>
-                  <step.icon />
+              <motion.div
+                key={step.label}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+                className="flex items-center gap-2 md:gap-3"
+              >
+                <div className="relative flex h-16 w-16 flex-col items-center justify-center rounded-2xl border border-white/10 md:h-20 md:w-20">
+                  <svg
+                    viewBox="0 0 80 80"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute inset-0 h-full w-full"
+                  >
+                    {/* Pulsing glow circle background */}
+                    <circle cx="40" cy="40" r="35" fill={step.lightColor} opacity="0.4">
+                      <animate attributeName="r" values="35;38;35" dur="2.5s" repeatCount="indefinite"/>
+                      <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2.5s" repeatCount="indefinite"/>
+                    </circle>
+                    
+                    {/* Border circle */}
+                    <circle cx="40" cy="40" r="35" fill="none" stroke={step.color} strokeWidth="2" opacity="0.7"/>
+                    
+                    {/* Inner pulsing circle */}
+                    <circle cx="40" cy="40" r="30" fill="none" stroke={step.color} strokeWidth="1.5" opacity="0.4">
+                      <animate attributeName="r" values="30;32;30" dur="2.5s" repeatCount="indefinite"/>
+                      <animate attributeName="opacity" values="0.4;0.2;0.4" dur="2.5s" repeatCount="indefinite"/>
+                    </circle>
+                  </svg>
+                  <motion.span
+                    className="relative z-10 text-2xl md:text-3xl"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.5, ease: 'easeInOut' }}
+                  >
+                    {step.icon}
+                  </motion.span>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-white">{step.label}</p>
-                {index < 4 ? <motion.div animate={{ x: [0, 6, 0] }} transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.8 }} className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-cyan-200 md:block"><FiArrowRight /></motion.div> : null}
-              </div>
+                
+                <div className="hidden flex-col md:flex">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{step.label}</p>
+                  <p className="text-sm font-bold text-white">{index < 4 ? '→' : ''}</p>
+                </div>
+
+                {/* Animated arrow for mobile */}
+                {index < 4 && (
+                  <motion.div
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.6 }}
+                    className="flex md:hidden text-white/60"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </motion.div>
+                )}
+              </motion.div>
             ))}
           </div>
         </motion.section>
