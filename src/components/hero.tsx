@@ -70,6 +70,9 @@ export function Hero({ onExplore, onFeasibility }: { onExplore: () => void; onFe
             <span className="block text-white sm:text-transparent sm:bg-clip-text sm:bg-[linear-gradient(90deg,#fff7d6_0%,#f7b733_35%,#36f2a4_70%,#8adfff_100%)] sm:animate-[shine_6s_linear_infinite]">HelioHub</span>
             <span className="mt-2 block text-4xl font-bold text-white/95 sm:text-5xl lg:text-6xl">Smart Solar Charging Station</span>
           </h1>
+          <p className="mt-2 max-w-2xl text-sm font-semibold text-amber-200/80 uppercase tracking-[0.08em]">
+            Campus-grade solar charging station with AI-powered energy management and real-time monitoring
+          </p>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
             A premium solar mobility platform combining battery intelligence, real-time monitoring, and Helios AI to deliver a futuristic charging experience.
           </p>

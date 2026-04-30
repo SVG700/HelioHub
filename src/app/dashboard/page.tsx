@@ -16,7 +16,7 @@ export default function DashboardPage() {
               <p className="text-sm uppercase tracking-[0.3em] text-amber-200">Dashboard</p>
               <h1 className="font-display mt-3 text-3xl font-semibold text-white sm:text-4xl">Live solar operations</h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-                A focused control room for telemetry, storage, and generation. Demo Mode keeps the data moving for presentations and investor demos.
+                A focused control room for telemetry, storage, and generation. Demo Mode simulates live solar charging data for system demonstration.
               </p>
             </div>
             <div className={`rounded-full px-4 py-3 text-sm font-semibold ${demoMode ? 'bg-gradient-to-r from-amber-300 via-orange-300 to-emerald-300 text-slate-950 shadow-[0_0_18px_rgba(247,183,51,0.26)]' : 'surface-panel text-slate-200'}`}>

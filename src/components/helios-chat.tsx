@@ -332,8 +332,8 @@ export function HeliosChat({
     <SectionShell
       id="ai"
       eyebrow="Helios AI"
-      title="AI-Powered Intelligence for solar conversations"
-      description="Powered by Gemini AI"
+      title="AI-Powered Intelligence for solar decisions"
+      description="Powered by Gemini AI and trained on solar domain knowledge, Helios AI provides intelligent answers about solar energy, feasibility, and the HelioHub system."
     >
       <div className="glass-card lift-card relative overflow-hidden rounded-[2rem] p-6">
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(247,183,51,0.35),transparent_65%)] blur-2xl" />

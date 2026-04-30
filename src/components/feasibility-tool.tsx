@@ -682,7 +682,7 @@ export function FeasibilityTool({
           ) : null}
 
           <div className="mt-6 rounded-3xl border border-emerald-300/15 bg-emerald-300/5 p-5 text-sm leading-7 text-slate-300">
-            A higher sunlight score increases feasibility, panel efficiency, and projected savings while improving confidence in charging reliability. The current site profile is framed as a product-grade deployment rather than a prototype.
+            A higher sunlight score increases feasibility, panel efficiency, and projected savings while improving confidence in charging reliability.
           </div>
         </motion.div>
       </div>

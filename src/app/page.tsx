@@ -61,66 +61,49 @@ export default function HomePage() {
         <motion.section {...sectionMotion} className="mt-10 glass-card rounded-[2rem] p-5 sm:mt-12 sm:p-6">
           <p className="text-xs uppercase tracking-[0.3em] text-cyan-200">How It Works</p>
           <h2 className="font-display mt-3 max-w-[24ch] text-2xl font-semibold text-white sm:text-3xl">From sunlight to smart output</h2>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:mt-6 md:gap-3">
+          <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-5">
             {[
-              { label: 'Solar Panel', color: '#facc15', lightColor: 'rgba(250,204,21,0.3)', icon: '☀️' },
-              { label: 'Charge Controller', color: '#f97316', lightColor: 'rgba(249,115,22,0.3)', icon: '⚙️' },
-              { label: 'Battery', color: '#34d399', lightColor: 'rgba(52,211,153,0.3)', icon: '🔋' },
-              { label: 'DC-DC Converter', color: '#a78bfa', lightColor: 'rgba(167,139,250,0.3)', icon: '⚡' },
-              { label: 'Output', color: '#60a5fa', lightColor: 'rgba(96,165,250,0.3)', icon: '🔌' }
-            ].map((step, index) => (
+              { step: 1, label: 'Solar Panel', desc: 'Captures sunlight', color: '#facc15', lightColor: 'rgba(250,204,21,0.15)', icon: '☀️' },
+              { step: 2, label: 'Charge Controller', desc: 'Regulates voltage', color: '#f97316', lightColor: 'rgba(249,115,22,0.15)', icon: '⚙️' },
+              { step: 3, label: 'Battery', desc: 'Stores energy', color: '#34d399', lightColor: 'rgba(52,211,153,0.15)', icon: '🔋' },
+              { step: 4, label: 'DC-DC Converter', desc: 'Converts voltage', color: '#a78bfa', lightColor: 'rgba(167,139,250,0.15)', icon: '⚡' },
+              { step: 5, label: 'USB Output', desc: 'Delivers power', color: '#60a5fa', lightColor: 'rgba(96,165,250,0.15)', icon: '🔌' }
+            ].map((item, index) => (
               <motion.div
-                key={step.label}
+                key={item.label}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.5 }}
-                transition={{ delay: index * 0.1, duration: 0.4 }}
-                className="flex items-center gap-2 md:gap-3"
+                transition={{ delay: index * 0.12, duration: 0.4 }}
+                className="flex flex-col items-center"
               >
-                <div className="relative flex h-16 w-16 flex-col items-center justify-center rounded-2xl border border-white/10 md:h-20 md:w-20">
-                  <svg
-                    viewBox="0 0 80 80"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="absolute inset-0 h-full w-full"
-                  >
-                    {/* Pulsing glow circle background */}
-                    <circle cx="40" cy="40" r="35" fill={step.lightColor} opacity="0.4">
-                      <animate attributeName="r" values="35;38;35" dur="2.5s" repeatCount="indefinite"/>
-                      <animate attributeName="opacity" values="0.4;0.6;0.4" dur="2.5s" repeatCount="indefinite"/>
-                    </circle>
-                    
-                    {/* Border circle */}
-                    <circle cx="40" cy="40" r="35" fill="none" stroke={step.color} strokeWidth="2" opacity="0.7"/>
-                    
-                    {/* Inner pulsing circle */}
-                    <circle cx="40" cy="40" r="30" fill="none" stroke={step.color} strokeWidth="1.5" opacity="0.4">
-                      <animate attributeName="r" values="30;32;30" dur="2.5s" repeatCount="indefinite"/>
-                      <animate attributeName="opacity" values="0.4;0.2;0.4" dur="2.5s" repeatCount="indefinite"/>
-                    </circle>
-                  </svg>
-                  <motion.span
-                    className="relative z-10 text-2xl md:text-3xl"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.5, ease: 'easeInOut' }}
-                  >
-                    {step.icon}
-                  </motion.span>
+                <div 
+                  className="relative flex h-24 w-24 items-center justify-center rounded-3xl border-2 shadow-lg"
+                  style={{ 
+                    backgroundColor: item.lightColor,
+                    borderColor: item.color
+                  }}
+                >
+                  <div className="absolute inset-0 rounded-3xl opacity-50" style={{
+                    background: `radial-gradient(circle, ${item.color}20, transparent 70%)`
+                  }} />
+                  <div className="relative z-10 flex flex-col items-center">
+                    <span className="text-2xl">{item.icon}</span>
+                    <span className="mt-1 text-xs font-bold text-white" style={{ color: item.color }}>
+                      STEP {item.step}
+                    </span>
+                  </div>
                 </div>
-                
-                <div className="hidden flex-col md:flex">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{step.label}</p>
-                  <p className="text-sm font-bold text-white">{index < 4 ? '→' : ''}</p>
-                </div>
-
-                {/* Animated arrow for mobile */}
+                <p className="mt-3 text-sm font-semibold text-white text-center">{item.label}</p>
+                <p className="text-xs text-slate-400 text-center mt-1">{item.desc}</p>
                 {index < 4 && (
                   <motion.div
                     animate={{ x: [0, 4, 0] }}
-                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.6 }}
-                    className="flex md:hidden text-white/60"
+                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.8 }}
+                    className="mt-4 md:mt-6 text-slate-400"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 18l6-6-6-6" />
                     </svg>
                   </motion.div>
                 )}
@@ -134,11 +117,11 @@ export default function HomePage() {
           <h2 className="font-display mt-3 max-w-[24ch] text-2xl font-semibold text-white sm:text-3xl">Explore core platform modules</h2>
           <div className="mt-5 grid gap-4 sm:mt-6 sm:gap-5 md:grid-cols-3">
             {[
-              { title: 'Smart Dashboard', description: 'Live telemetry, battery behavior, and animated flow analytics.', href: '/dashboard', icon: FiBarChart2, badge: '📊' },
-              { title: 'Helios AI', description: 'Intent-aware assistant with confidence-based recommendations.', href: '/ai-assistant', icon: FiCpu, badge: '🤖' },
-              { title: 'Solar Feasibility Tool', description: 'Fast viability analysis for planning and deployment.', href: '/feasibility-tool', icon: FiSun, badge: '☀️' }
+              { title: 'Smart Dashboard', description: 'Live telemetry, battery behavior, and animated flow analytics.', href: '/dashboard', icon: FiBarChart2, badge: '📊', border: 'border-t-cyan-400' },
+              { title: 'Helios AI', description: 'Intent-aware assistant with confidence-based recommendations.', href: '/ai-assistant', icon: FiCpu, badge: '🤖', border: 'border-t-amber-300' },
+              { title: 'Solar Feasibility Tool', description: 'Fast viability analysis for planning and deployment.', href: '/feasibility-tool', icon: FiSun, badge: '☀️', border: 'border-t-emerald-400' }
             ].map((item) => (
-              <Link key={item.title} href={item.href} className="glass-card lift-card group rounded-[2rem] border border-white/10 p-5 transition duration-300 hover:-translate-y-2 hover:border-amber-300/35 hover:shadow-[0_0_30px_rgba(247,183,51,0.16)] sm:p-6">
+              <Link key={item.title} href={item.href} className={`glass-card lift-card group relative h-full overflow-hidden rounded-[2rem] border border-white/10 p-5 transition duration-300 hover:-translate-y-2 hover:border-amber-300/35 hover:shadow-[0_0_30px_rgba(247,183,51,0.16)] sm:p-6 ${item.border} border-t-2`}>
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(145deg,rgba(247,183,51,0.24),rgba(54,242,164,0.1))] text-amber-100">
                   <span className="mr-1 text-lg">{item.badge}</span>
@@ -155,12 +138,12 @@ export default function HomePage() {
 
         <motion.section {...sectionMotion} className="mt-10 grid gap-4 sm:mt-12 md:grid-cols-2 lg:grid-cols-4">
           {[
-            { text: 'Eco-friendly energy routing', icon: FiGlobe, accent: 'text-emerald-200' },
-            { text: 'Reduces grid dependency', icon: FiZap, accent: 'text-amber-200' },
-            { text: 'Effective for rural deployment', icon: FiLayers, accent: 'text-cyan-200' },
-            { text: 'Emergency-ready architecture', icon: FiShield, accent: 'text-red-200' }
+            { text: 'Eco-friendly energy routing', icon: FiGlobe, accent: 'text-emerald-200', bg: 'bg-emerald-500/8 border-emerald-500/20' },
+            { text: 'Reduces grid dependency', icon: FiZap, accent: 'text-amber-200', bg: 'bg-blue-500/8 border-blue-500/20' },
+            { text: 'Effective for rural deployment', icon: FiLayers, accent: 'text-cyan-200', bg: 'bg-orange-500/8 border-orange-500/20' },
+            { text: 'Emergency-ready architecture', icon: FiShield, accent: 'text-red-200', bg: 'bg-red-500/8 border-red-500/20' }
           ].map((impact) => (
-            <article key={impact.text} className="glass-card lift-card rounded-2xl border border-white/10 p-4 shadow-[0_0_20px_rgba(255,255,255,0.03)] sm:p-5">
+            <article key={impact.text} className={`glass-card lift-card rounded-2xl border border-white/10 p-4 shadow-[0_0_20px_rgba(255,255,255,0.03)] sm:p-5 ${impact.bg}`}>
               <impact.icon className={`text-xl ${impact.accent}`} />
               <p className="mt-3 max-w-[30ch] text-sm font-semibold text-white">{impact.text}</p>
             </article>
@@ -174,9 +157,9 @@ export default function HomePage() {
             <div className="mt-5 rounded-2xl border border-white/10 bg-[#071222] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] sm:mt-6 sm:p-5">
               <div className="grid grid-cols-3 gap-3 text-center">
                 {[
-                  ['Voltage', '49.8V'],
-                  ['Current', '12.7A'],
-                  ['Power', '632W']
+                  ['Voltage', '12.4V'],
+                  ['Current', '2.1A'],
+                  ['Power', '26.0W']
                 ].map(([k, v]) => (
                   <div key={k} className="rounded-xl border border-white/10 bg-white/5 p-3 shadow-[0_0_18px_rgba(255,255,255,0.03)]">
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{k}</p>
