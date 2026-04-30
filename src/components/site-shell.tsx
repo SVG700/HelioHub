@@ -62,12 +62,12 @@ function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group relative rounded-full px-4 py-2 text-sm transition ${active ? 'bg-gradient-to-r from-amber-300 to-emerald-300 text-slate-950 shadow-[0_0_20px_rgba(247,183,51,0.18)]' : 'text-slate-300 hover:text-white'}`}
+                className={`group relative rounded-full px-4 py-2 text-sm font-medium transition ${active ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 shadow-[0_0_24px_rgba(250,204,21,0.32)]' : 'text-slate-300 hover:text-white'}`}
                 aria-current={active ? 'page' : undefined}
               >
                 {item.label}
                 <span
-                  className={`absolute inset-x-3 -bottom-0.5 h-0.5 origin-center scale-x-0 rounded-full bg-[linear-gradient(90deg,rgba(247,183,51,0),rgba(247,183,51,1),rgba(54,242,164,1),rgba(247,183,51,0))] transition-transform duration-300 group-hover:scale-x-100 ${active ? 'scale-x-100 shadow-[0_0_12px_rgba(247,183,51,0.65)]' : ''}`}
+                  className={`absolute inset-x-3 -bottom-1 h-0.5 origin-center scale-x-0 rounded-full bg-[linear-gradient(90deg,rgba(250,204,21,0),rgba(250,204,21,1),rgba(250,204,21,1),rgba(250,204,21,0))] transition-transform duration-300 group-hover:scale-x-100 ${active ? 'scale-x-100 shadow-[0_0_16px_rgba(250,204,21,0.8)]' : ''}`}
                 />
               </Link>
             );
@@ -112,10 +112,10 @@ function Navigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm transition ${active ? 'bg-gradient-to-r from-amber-300/95 to-emerald-300/90 font-semibold text-slate-950' : 'text-slate-200 hover:bg-white/5'}`}
+                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition ${active ? 'bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 shadow-[0_0_16px_rgba(250,204,21,0.3)]' : 'text-slate-200 hover:bg-white/5'}`}
                   >
                     <span>{item.label}</span>
-                    {active ? <span className="h-2 w-2 rounded-full bg-slate-950/70" /> : null}
+                    {active ? <span className="h-2.5 w-2.5 rounded-full bg-slate-950/80 shadow-[0_0_8px_rgba(250,204,21,0.6)]" /> : null}
                   </Link>
                 );
               })}

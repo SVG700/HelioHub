@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Hero } from '@/components/hero';
+import { PowerChart } from '@/components/power-chart';
 import {
   FiActivity,
   FiAlertTriangle,
@@ -154,20 +155,8 @@ export default function HomePage() {
           <article className="glass-card rounded-[2rem] p-5 shadow-[0_0_26px_rgba(247,183,51,0.06)] sm:p-6">
             <p className="text-xs uppercase tracking-[0.3em] text-cyan-200">Mini Demo Preview</p>
             <h2 className="font-display mt-3 max-w-[24ch] text-2xl font-semibold text-white sm:text-3xl">Live snapshot of system performance</h2>
-            <div className="mt-5 rounded-2xl border border-white/10 bg-[#071222] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] sm:mt-6 sm:p-5">
-              <div className="grid grid-cols-3 gap-3 text-center">
-                {[
-                  ['Voltage', '12.4V'],
-                  ['Current', '2.1A'],
-                  ['Power', '26.0W']
-                ].map(([k, v]) => (
-                  <div key={k} className="rounded-xl border border-white/10 bg-white/5 p-3 shadow-[0_0_18px_rgba(255,255,255,0.03)]">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{k}</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{v}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 h-24 rounded-xl border border-cyan-300/20 bg-[linear-gradient(180deg,rgba(34,211,238,0.12),rgba(15,23,42,0.25))] shadow-[0_0_30px_rgba(34,211,238,0.08)]" />
+            <div className="mt-5 sm:mt-6">
+              <PowerChart />
             </div>
             <Link href="/dashboard" className="glow-button mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_0_24px_rgba(54,242,164,0.2)] sm:mt-6">
               View Live Dashboard
@@ -180,13 +169,16 @@ export default function HomePage() {
             <h2 className="font-display mt-3 max-w-[20ch] text-2xl font-semibold text-white sm:text-3xl">Helios AI in action</h2>
             <div className="mt-5 space-y-3 sm:mt-6 sm:space-y-4">
               {[
-                ['Energy prediction', 'Forecasts panel output from local sunlight trends and battery state.', '🔮'],
-                ['Smart recommendations', 'Suggests panel sizing, storage balance, and port capacity changes.', '💡'],
-                ['System monitoring', 'Tracks voltage, current, temperature, and load behavior in real time.', '📡']
-              ].map(([title, desc]) => (
-                <div key={title} className="rounded-2xl border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),rgba(9,19,39,0.75))] p-4 shadow-[0_0_20px_rgba(255,255,255,0.03)]">
-                  <p className="text-sm font-semibold text-white">{title}</p>
-                  <p className="mt-2 max-w-[38ch] text-sm leading-6 text-slate-300 sm:leading-7">{desc}</p>
+                { title: 'Energy prediction', desc: 'Forecasts panel output from local sunlight trends and battery state.', icon: '📈', border: 'border-l-amber-400' },
+                { title: 'Smart recommendations', desc: 'Suggests panel sizing, storage balance, and port capacity changes.', icon: '💡', border: 'border-l-cyan-400' },
+                { title: 'System monitoring', desc: 'Tracks voltage, current, temperature, and load behavior in real time.', icon: '📡', border: 'border-l-emerald-400' }
+              ].map((item) => (
+                <div key={item.title} className={`rounded-2xl border border-l-4 border-white/10 bg-white/3 p-4 shadow-[0_0_20px_rgba(255,255,255,0.03)] transition hover:border-white/20 ${item.border}`}>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <span className="text-lg">{item.icon}</span>
+                    {item.title}
+                  </p>
+                  <p className="mt-2 max-w-[38ch] text-sm leading-6 text-slate-300 sm:leading-7">{item.desc}</p>
                 </div>
               ))}
             </div>
